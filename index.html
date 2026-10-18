@@ -6232,20 +6232,17 @@ async function executeGeminiMagicEdit() {
             /* STEP 2: send picked chunks with absolute line numbers, get edits */
             var lines = sourceContent.split('\n');
             var step2System =
-              'You are a precise code editor. The code is shown as CHUNKS. Each line is "N| code" where N is the ABSOLUTE line number in the whole file. The number and "| " are NOT part of the code.\n' +
+              'Code editor. Code is shown as CHUNKS; each line is "N| code" where N is the ABSOLUTE file line number (not part of the code).\n' +
               'Return ONLY the minimal edits needed, as blocks in exactly this format:\n' +
               '@@ replace S-E\n<new lines that replace lines S through E>\n' +
               '@@ insert after N\n<new lines inserted after line N>\n' +
               '@@ delete S-E\n' +
               'Rules:\n' +
-              '- Edit ONLY lines that are shown inside the chunks. Never touch lines outside them.\n' +
-              '- Touch only lines that must change. Never repeat unchanged lines. Use the smallest range possible.\n' +
-              '- New lines are raw code with NO line numbers, keeping the file indentation style.\n' +
-              '- Ranges must not overlap. Line numbers are the absolute numbers shown.\n' +
+              '- Edit only lines shown in the chunks. Change only what must change, never repeat unchanged lines, use the smallest range.\n' +
+              '- New lines are raw code without line numbers, in the file indentation style. Ranges must not overlap.\n' +
               '- No explanations, no code fences. If nothing needs to change output: @@ none\n' +
               '- NEVER output <!DOCTYPE>, <html>, <head> or <body> tags. Never close or reopen <style> or <script> unless you are replacing the very line that contains it.\n' +
-              '- Put code where it belongs: CSS only inside <style>, JS only inside <script>, HTML elements only inside <body>. Check the nearest lines above your position to confirm you are inside the right block.\n' +
-              '- A feature that needs HTML and JS must be two separate @@ blocks, each at its own correct line. Add only what was asked and leave everything else untouched.\n' +
+              '- CSS goes only inside <style>, JS only inside <script>, HTML only inside <body>; check the lines above your position. HTML plus JS means separate @@ blocks. Add only what was asked.\n' +
               '- If you truly need a chunk that is not shown, reply ONLY with: NEED: Cxx, Cyy';
             var headRe = /^\s*@@\s*(replace|delete|insert\s+after)\s+(\d+)(?:\s*-\s*(\d+))?\s*$/i;
             var needRe = /^\W*NEED\b\s*[:=]/im;
@@ -6258,7 +6255,7 @@ async function executeGeminiMagicEdit() {
                   lines.slice(c.a, c.b + 1).map(function (l, i) { return (c.a + i + 1) + '| ' + l; }).join('\n');
               }).join('\n\n');
               var outline = chunks.filter(function (c) { return pickedIds.indexOf(c.id) === -1; })
-                .map(function (c) { return c.id + ' ' + c.kind + ' ' + c.name + ' [lines ' + (c.a + 1) + '-' + (c.b + 1) + ']'; }).join('\n');
+                .map(function (c) { return c.id + ' ' + c.kind + ' ' + c.name; }).join('\n');
               var step2User = 'INSTRUCTION:\n' + instruction + '\n\n=== OUTLINE OF CHUNKS NOT SHOWN ===\n' + (outline || '[none]') + '\n\n=== SELECTED CHUNKS ===\n' + body;
 
               statusEl.textContent = 'Step 2 of 2: ' + picked.length + ' chunks picked by ' + how + ', requesting edits...';
@@ -6942,24 +6939,15 @@ function buildChunkMap(src) {
 
 /* 13.7 prompts */
 var MAP_PROMPT =
-  'ROLE: You are a code-editing PLANNER. This is STEP 1 of 2. Do NOT write code or patches now.\n\n' +
-  'Below is an INDEX of a large source file. The file is cut into numbered chunks (id | kind | name | lines | size | contents). ' +
-  'The code itself is deliberately NOT included.\n\n' +
-  'TASK: Read the INSTRUCTIONS and decide which chunks I must send you in STEP 2 so you can write correct, error-free find-and-replace patches.\n\n' +
-  'SELECTION RULES:\n' +
-  '- Include every chunk that must be changed.\n' +
-  '- Include chunks the change depends on, or that depend on it: definitions of functions/variables it calls, the HTML markup AND the CSS of any element it touches, the matching worker/main-thread side, event handlers wired to it, and any storage keys or state it reads or writes.\n' +
-  '- If you are unsure whether a chunk matters, include it. A missing chunk causes errors; an extra chunk costs almost nothing.\n' +
-  '- Prefer the smallest sufficient set. Never request everything unless that is truly required.\n' +
-  '- Use only ids that exist in the index. Never invent ids.\n\n' +
-  'REPLY IN EXACTLY THIS FORMAT AND NOTHING ELSE:\n' +
-  'NEEDED: C03, C12, C13\n' +
-  'EDIT: C12, C13\n' +
-  'WHY:\n' +
-  'C03 - one short reason\n' +
-  'C12 - one short reason\n' +
-  'C13 - one short reason\n' +
-  '(NEEDED = every chunk you want to see. EDIT = the subset you expect to modify.)';
+  'ROLE: code-editing PLANNER, STEP 1 of 2. Do NOT write code or patches.\n\n' +
+    'Below is an INDEX of a large file cut into chunks (id | kind | name | lines | size | contents). The code is not included.\n\n' +
+    'TASK: From the INSTRUCTIONS, pick the chunks I must send in STEP 2 to write correct patches.\n' +
+    '- Include every chunk to change.\n' +
+    '- Include chunks it depends on or that depend on it: functions and variables it calls, the HTML markup AND CSS of any element it touches, event handlers wired to it, storage keys or state it uses.\n' +
+    '- If unsure, include it. Prefer the smallest sufficient set. Use only ids from the index.\n\n' +
+    'REPLY ONLY IN THIS FORMAT, NO EXPLANATION:\n' +
+    'NEEDED: C03, C12, C13\n' +
+    'EDIT: C12, C13';
 
 var CHUNK_NOTE =
   'NOTE: This is STEP 2 of 2. The file is large, so only the SELECTED CHUNKS are shown, in file order. ' +
@@ -6974,7 +6962,7 @@ function cmIndexText(chunks, total) {
   var kb = function (n) { return n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'K'; };
   return chunks.map(function (c) {
     return c.id + ' | ' + c.kind + ' | ' + c.name + ' | L' + (c.a + 1) + '-' + (c.b + 1) + ' | ' + kb(c.chars) +
-           (c.desc ? ' | ' + cmClean(c.desc, 80) : '');
+           (c.desc ? ' | ' + cmClean(c.desc, 40) : '');
   }).join('\n');
 }
 
