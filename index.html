@@ -986,6 +986,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                       <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
                                       <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
                         <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
+                                                <button id="bmWinPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Copy Windows EXE prompt for AI"><i class="fa-brands fa-windows" style="margin-right:3px;"></i>Windows EXE</button>
                       </div>
                     </div>
                     <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:6px;"></textarea>
@@ -9343,6 +9344,60 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                           toast('❌ Failed to copy prompt: ' + err.message, 'err');
                                                         });
                                                       });
+
+                              var bmWinPromptBtnEl = document.getElementById('bmWinPromptBtn');
+                              if (bmWinPromptBtnEl) bmWinPromptBtnEl.addEventListener('click', function() {
+                                var q = String.fromCharCode(39);
+                                var clean = function (s) { return String(s).split(q).join(''); };
+                                var appName = clean(document.getElementById('bmAppName').value.trim() || 'My App');
+                                var appVersion = clean(document.getElementById('bmVersion').value.trim() || '1.0.0');
+                                var repoContext = ghRepo ? ghRepo : 'my GitHub repo';
+                                var filename = 'windows-exe.yml';
+                                var fnInput = document.getElementById('bmWorkflowFilename');
+                                if (fnInput) {
+                                  fnInput.value = filename;
+                                  fnInput.dispatchEvent(new Event('input'));
+                                }
+                                var lines = [
+                                  'Write a complete GitHub Actions workflow YAML file to build fast, small, native Windows .exe files from multiple project folders in one repo.',
+                                  '',
+                                  'Context and Constraints:',
+                                  '- Repo: ' + repoContext,
+                                  '- The YAML file will be saved at: .github/workflows/' + filename,
+                                  '- Trigger must be: "on: workflow_dispatch:"',
+                                  '- Declare inputs under "workflow_dispatch: inputs:" for "app_name" with default "' + appName + '", "app_version" with default "' + appVersion + '", and "projects" with default "auto" or a comma-separated list of folder names',
+                                  '- Use Tauri v2, not Electron, so the exe uses the Windows WebView2 and does not bundle Chromium.',
+                                  '',
+                                  'Job 1, "discover", runs-on ubuntu-latest:',
+                                  '- Output a JSON matrix of project folders as a job output.',
+                                  '- If "projects" is "auto", treat every top-level folder as a project if it contains src-tauri/tauri.conf.json, package.json, or index.html.',
+                                  '- Otherwise use the folders listed in the input.',
+                                  '- If no subfolder qualifies, treat the repo root as the single project.',
+                                  '- Fail with a clear message if nothing is found.',
+                                  '',
+                                  'Job 2, "build", needs discover, runs-on windows-latest:',
+                                  '- strategy: matrix from the discover output, fail-fast false, so projects build in parallel and one failure does not cancel the others.',
+                                  '- Steps in order:',
+                                  '  Step 1: actions/checkout@v4',
+                                  '  Step 2: actions/setup-node@v4 with Node 20 and npm cache',
+                                  '  Step 3: dtolnay/rust-toolchain@stable',
+                                  '  Step 4: Swatinem/rust-cache@v2 with the workspace pointing at the project src-tauri folder',
+                                  '  Step 5: If the project folder has index.html but no src-tauri folder, generate a minimal Tauri v2 wrapper inline: tauri.conf.json with frontendDist pointing at the project folder and productName and version from the inputs, Cargo.toml, build.rs and src/main.rs.',
+                                  '  Step 6: Patch productName and version in tauri.conf.json, and the package version in Cargo.toml, from app_name and app_version using inline PowerShell or Python3 before the build.',
+                                  '  Step 7: Add this release profile to Cargo.toml if it is missing: opt-level = 3, lto = true, codegen-units = 1, panic = "abort", strip = true.',
+                                  '  Step 8: Icon handling: if build-icon.png exists at the repo root, run "npx tauri icon build-icon.png" in the project folder before the build.',
+                                  '  Step 9: Install dependencies with "npm ci" if package-lock.json exists, otherwise "npm install". Skip this if the project has no package.json.',
+                                  '  Step 10: Build a release exe only, with no installer bundle, for speed: "npx tauri build --no-bundle".',
+                                  '  Step 11: actions/upload-artifact@v4 uploading the .exe from src-tauri/target/release/ with artifact name "${{ github.event.inputs.app_name || ' + q + appName + q + ' }}-${{ matrix.project }}" and if-no-files-found: error.',
+                                  '',
+                                  'Return ONLY the raw YAML content. No markdown code fences, no explanations.'
+                                ];
+                                navigator.clipboard.writeText(lines.join('\n')).then(function() {
+                                  toast('🚀 Windows EXE YAML Prompt copied!');
+                                }).catch(function(err) {
+                                  toast('❌ Failed to copy prompt: ' + err.message, 'err');
+                                });
+                              });
 
                               // Icon Cropper State & Logic
                               let iconCropperInstance = null;
