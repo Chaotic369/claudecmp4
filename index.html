@@ -6962,7 +6962,7 @@ function cmIndexText(chunks, total) {
   var kb = function (n) { return n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'K'; };
   return chunks.map(function (c) {
     return c.id + ' | ' + c.kind + ' | ' + c.name + ' | L' + (c.a + 1) + '-' + (c.b + 1) + ' | ' + kb(c.chars) +
-           (c.desc ? ' | ' + cmClean(c.desc, 40) : '');
+           (c.desc ? ' | ' + cmClean(c.desc, 80) : '');
   }).join('\n');
 }
 
