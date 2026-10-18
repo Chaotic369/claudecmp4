@@ -1872,6 +1872,15 @@ window.renderBookmarks = function() {
         const nameSpan = document.createElement('span');
         nameSpan.className = 'repo-name';
         nameSpan.textContent = name;
+                var bmFont = Math.max(4, Math.min(9, 36 / (Math.max(name.length, 1) * 0.58)));
+                nameSpan.style.fontSize = bmFont.toFixed(1) + 'px';
+                nameSpan.style.whiteSpace = 'nowrap';
+                nameSpan.style.overflow = 'hidden';
+                nameSpan.style.textOverflow = 'clip';
+                nameSpan.style.wordBreak = 'normal';
+                nameSpan.style.overflowWrap = 'normal';
+                nameSpan.style.minWidth = '0';
+                nameSpan.style.lineHeight = '1.2';
         
         const actions = document.createElement('div');
                         actions.className = 'repo-actions';
