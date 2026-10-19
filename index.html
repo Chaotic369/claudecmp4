@@ -1467,6 +1467,7 @@ function bringModalToFront(modal) {
   }
   modal.style.zIndex = topModalZ;
 }
+var MAX_NESTING_DEPTH = 4;
 
 function centerModal(el) {
   if (!el) return;
