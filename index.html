@@ -986,12 +986,21 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
               <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
               <div style="display:flex; gap:6px;">
-                                      <button id="bmClearYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear YAML"><i class="fa-solid fa-trash" style="margin-right:3px;"></i>Clear</button>
-                                      <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
-                                      <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
-                        <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
-                                                <button id="bmWinPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Copy Windows EXE prompt for AI"><i class="fa-brands fa-windows" style="margin-right:3px;"></i>Windows EXE</button>
-                      </div>
+                                      <select id="bmYamlConfigSelect" class="bm-select" style="width:auto; padding:2px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.2) !important; color:#fff; cursor:pointer;" title="Select YAML Config Type">
+                                                                              <option value="" selected disabled>⚡ YAML Config Type...</option>
+                                                                              <option value="wrapper">📦 HTML Wrapper (Cordova APK)</option>
+                                                                              <option value="native">✨ Native Android App (AI Prompt)</option>
+                                                                              <option value="windows">🪟 Windows EXE (Tauri AI Prompt)</option>
+                                                                              <option value="playwright">🎭 Playwright Visual Tests</option>
+                                                                              <option value="lighthouse">🚀 Lighthouse CI Audit</option>
+                                                                              <option value="clouddesktop">🖥️ Cloud Desktop (noVNC)</option>
+                                                                            </select>
+                                                                            <button id="bmClearYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear YAML"><i class="fa-solid fa-trash" style="margin-right:3px;"></i>Clear</button>
+                                                                            <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
+                                                                            <button id="bmUseWrapperYamlBtn" type="button" style="display:none;"></button>
+                                                                            <button id="bmCopyYamlPromptBtn" type="button" style="display:none;"></button>
+                                                                            <button id="bmWinPromptBtn" type="button" style="display:none;"></button>
+                                                            </div>
                     </div>
                     <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:6px;"></textarea>
             <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
@@ -9840,10 +9849,31 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                 ];
                                 navigator.clipboard.writeText(lines.join('\n')).then(function() {
                                   toast('🚀 Windows EXE YAML Prompt copied!');
-                                }).catch(function(err) {
-                                  toast('❌ Failed to copy prompt: ' + err.message, 'err');
-                                });
-                              });
+                                                                  }).catch(function(err) {
+                                                                    toast('❌ Failed to copy prompt: ' + err.message, 'err');
+                                                                  });
+                                                                });
+
+                                                                var bmYamlConfigSelectEl = document.getElementById('bmYamlConfigSelect');
+                                                                if (bmYamlConfigSelectEl) {
+                                                                  bmYamlConfigSelectEl.addEventListener('change', function() {
+                                                                    var val = this.value;
+                                                                    if (val === 'wrapper' && bmUseWrapperYamlBtnEl) {
+                                                                      bmUseWrapperYamlBtnEl.click();
+                                                                    } else if (val === 'native' && bmCopyYamlPromptBtnEl) {
+                                                                      bmCopyYamlPromptBtnEl.click();
+                                                                    } else if (val === 'windows' && bmWinPromptBtnEl) {
+                                                                      bmWinPromptBtnEl.click();
+                                                                    } else if (val === 'playwright' && window.loadPlaywrightWorkflow) {
+                                                                      window.loadPlaywrightWorkflow();
+                                                                    } else if (val === 'lighthouse' && window.loadLighthouseWorkflow) {
+                                                                      window.loadLighthouseWorkflow();
+                                                                    } else if (val === 'clouddesktop' && window.loadCloudDesktopWorkflow) {
+                                                                      window.loadCloudDesktopWorkflow();
+                                                                    }
+                                                                    this.selectedIndex = 0;
+                                                                  });
+                                                                }
 
                               // Icon Cropper State & Logic
                               let iconCropperInstance = null;
