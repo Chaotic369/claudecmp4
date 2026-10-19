@@ -158,15 +158,15 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-      position: fixed; z-index: 100000 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
-      background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
-      max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
-      max-height: fit-content;
-      overflow: visible;
+      position: fixed; z-index: 100000 !important; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 6px;
+      background: rgba(18, 18, 22, 0.88); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55); width: max-content; height: fit-content;
+      max-width: calc(100vw - 12px);
+      max-height: calc(100dvh - 48px);
+      overflow-x: auto; overflow-y: hidden;
       display: none; pointer-events: none;
       transform: scale(var(--user-scale, 1));
-      transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+      transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
     }
 #app-menu.open { 
   display: flex; pointer-events: auto;
@@ -220,22 +220,22 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileUploadBtn { width: 18px; font-size: 8px; color: var(--blue); }
 #bulkFileAddBtn { width: 18px; font-size: 8px; color: var(--purple); }
 
-#repoSidebar { display: flex; flex-direction: row; gap: 6px; flex-shrink: 0; height: fit-content; }
-#sidebarContent { display: flex; flex-direction: column; width: 150px; height: auto; max-height: 280px; border: none !important; padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
-#sidebarContent.mini { height: 120px; max-height: 120px !important; width: 85px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
-#sidebarContent.full-tree-active:not(.mini) { max-height: 85vh !important; height: 85vh !important; width: 280px !important; }
+#repoSidebar { display: flex; flex-direction: row; gap: 5px; flex-shrink: 0; height: fit-content; max-height: 100%; }
+#sidebarContent { display: flex; flex-direction: column; width: 135px; max-width: 38vw; height: auto; max-height: 220px; border: none !important; padding-right: 3px; overflow-x: hidden; overflow-y: auto; }
+#sidebarContent.mini { height: 155px; max-height: 155px !important; width: 78px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#sidebarContent.full-tree-active:not(.mini) { max-height: 60vh !important; height: 60vh !important; width: min(240px, 46vw) !important; }
 #sidebarContent.mini .repo-name { font-size: 9px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; color: #ffffff; margin-top: 0; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 0px 3px; margin-bottom: 0px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 15px; line-height: 15px; font-size: 9px; }
 #sidebarContent.mini .repo-item i { font-size: 9px; margin-right: 3px; }
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
-#bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border: none !important; padding-left: 4px; overflow-x: hidden; }
+#bookmarkContent { display: flex; flex-direction: column; width: 110px; height: fit-content; max-height: 200px; border: none !important; padding-left: 3px; overflow-x: hidden; overflow-y: auto; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
-#bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 45px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
-#bookmarkContent.mini .repo-name { font-size: 9px; text-align: left; white-space: normal; overflow: visible; overflow-wrap: anywhere; word-break: normal; opacity: 1; color: #ffffff; margin-top: 0px; line-height: 1.2; }
+#bookmarkContent.mini { height: auto; max-height: 165px !important; width: 44px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#bookmarkContent.mini .repo-name { font-size: 8.5px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; color: #ffffff; margin-top: 0px; line-height: 1.2; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 2px 3px; margin-bottom: 0px; justify-content: flex-start; align-items: flex-start; text-align: left; flex-direction: row; min-height: 15px; line-height: 1.2; }
 #bookmarkContent.mini #bookmarkRightList { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; margin: 0; flex-shrink: 0; }
@@ -299,7 +299,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-btn i { font-size: 8px; }
 .repo-btn.del { color: var(--red); }
 
-#main-controls { display: grid; grid-template-columns: repeat(5, 28px); grid-auto-rows: 28px; gap: 5px; align-content: start; flex-shrink: 0; height: fit-content; }
+#main-controls { display: grid; grid-template-columns: repeat(5, 28px); grid-auto-rows: minmax(28px, auto); gap: 5px; align-content: start; flex-shrink: 0; width: 160px; height: fit-content; }
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 10px; font-size: 10px; font-weight: 500;
@@ -348,7 +348,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #statusBar {
   position: fixed; bottom: 0; left: 0; right: 0; height: calc(26px + env(safe-area-inset-bottom, 0px)); background: #08080a; border: none !important;
-  display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 10.5px; font-weight: 500; color: #ffffff; z-index: 9990;
+  display: flex; align-items: center; padding: 0 10px env(safe-area-inset-bottom, 0px) 10px; gap: 8px; font-size: 10px; font-weight: 500; color: #ffffff; z-index: 9990;
+  overflow-x: auto; overflow-y: hidden; white-space: nowrap;
 }
 #statusBar .sb-item { white-space: nowrap; }
 #statusBar .sb-ok { color: var(--green); } #statusBar .sb-warn { color: var(--amber); }
@@ -709,24 +710,24 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                 <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 26px; padding: 0 4px; box-sizing: border-box; border: none; margin-top: 3px;">
                                                   <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 9.5px; height: 24px; line-height: 24px;">
                                                 </div>
-                                                <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 3px; padding: 3px 0 0 0; box-sizing: border-box; width: 100%;">
-                                                                  <button id="magicWandBtn" class="btn" title="Magic AI Edit" style="color: var(--teal); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Magic</span></button>
-                                                                  <button id="autoPickBtn" class="btn" title="AUTO (one click): picks the right code chunks from your instruction, no AI step 1 needed" style="color: var(--purple); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-brain" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Auto</span></button>
-                                                                  <button id="chunkMapBtn" class="btn" title="Step 1: copy file INDEX + instruction (AI replies with the chunks it needs)" style="color: var(--teal); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-map" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Index</span></button>
-                                                                  <button id="chunkPickBtn" class="btn" title="Step 2: copy the AI reply first, then click: builds payload with ONLY the chunks it asked for" style="color: var(--green); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-puzzle-piece" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Chunks</span></button>
-                                                                  <button id="multiProjectIndexBtn" class="btn" title="Multi-Project / Multi-File Step 1: Copy Index of all project files + instruction" style="color: var(--teal); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-layer-group" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Multi 1</span></button>
-                                                                  <button id="multiProjectChunksBtn" class="btn" title="Multi-Project / Multi-File Step 2: Copy Chunks requested by AI across files" style="color: var(--green); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-boxes-stacked" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Multi 2</span></button>
-                                                                  <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Commit All</span></button>
-                                                                  <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Repair</span></button>
-                                                                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-rocket" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Payload</span></button>
-                                                                </div>
+                                                <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 3px 0 0 0; box-sizing: border-box; width: 100%;">
+                                                                                                                  <button id="magicWandBtn" class="btn" title="Magic AI Edit" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Magic</span></button>
+                                                                                                                  <button id="autoPickBtn" class="btn" title="AUTO (one click): picks the right code chunks from your instruction, no AI step 1 needed" style="color: var(--purple); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-brain" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Auto</span></button>
+                                                                                                                  <button id="chunkMapBtn" class="btn" title="Step 1: copy file INDEX + instruction (AI replies with the chunks it needs)" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-map" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Index</span></button>
+                                                                                                                  <button id="chunkPickBtn" class="btn" title="Step 2: copy the AI reply first, then click: builds payload with ONLY the chunks it asked for" style="color: var(--green); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-puzzle-piece" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Chunks</span></button>
+                                                                                                                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-rocket" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Payload</span></button>
+                                                                                                                  <button id="multiProjectIndexBtn" class="btn" title="Multi-Project / Multi-File Step 1: Copy Index of all project files + instruction" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-layer-group" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Multi 1</span></button>
+                                                                                                                  <button id="multiProjectChunksBtn" class="btn" title="Multi-Project / Multi-File Step 2: Copy Chunks requested by AI across files" style="color: var(--green); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-boxes-stacked" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Multi 2</span></button>
+                                                                                                                  <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Commit</span></button>
+                                                                                                                  <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Repair</span></button>
+                                                                                                                </div>
     </div>
   
-                                                        <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
-                                                                                                                                                                                                <div id="bookmarkContent" class="mini">
-                                                                                                                    <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 0px; max-height: 55vh; overflow-y: auto; width: 100%;"></div>
-                                                                                                                  </div>
-                                                                                          </div>
+                                                        <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 4px; flex-shrink: 0; position: relative; max-height: 100%;">
+                                                                                                                                                                                                                                                        <div id="bookmarkContent" class="mini">
+                                                                                                                                                                            <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 0px; max-height: 165px; overflow-y: auto; width: 100%;"></div>
+                                                                                                                                                                          </div>
+                                                                                                                                                  </div>
                                                                 </div>
 
                       <div id="toast"><span id="toastMsg"></span><button id="toastCopyBtn" title="Copy Error"><i class="fa-regular fa-copy"></i></button></div>
@@ -1452,27 +1453,45 @@ function centerModal(el) {
   
   var hasRestored = restoreWindowState(el);
   var scale = parseFloat(el.style.getPropertyValue('--modal-scale')) || 1;
+  var maxW = window.innerWidth;
+  var maxH = window.innerHeight - 26 - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom')) || 0);
+
+  if (maxW < 600 && scale > 1.15) {
+    scale = 1;
+    el.style.setProperty('--modal-scale', 1);
+  }
   el.style.transformOrigin = 'top left';
   el.style.transform = 'scale(' + scale + ')';
   
-  // Force layout flush to get actual rendered dimensions
   if (!hasRestored) {
     el.style.left = '0px';
     el.style.top = '0px';
   }
   
   var rect = el.getBoundingClientRect();
-  var w = (rect.width > 20 ? rect.width : (el.offsetWidth || 360));
-  var h = (rect.height > 20 ? rect.height : (el.offsetHeight || 300));
-  var maxW = window.innerWidth;
-    var maxH = window.innerHeight - 24 - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom')) || 0);
+  var w = (rect.width > 20 ? rect.width : (el.offsetWidth || 320));
+  var h = (rect.height > 20 ? rect.height : (el.offsetHeight || 260));
+
+  if (w > maxW - 12 && el.offsetWidth > 0) {
+    scale = Math.max(0.55, (maxW - 16) / el.offsetWidth);
+    el.style.setProperty('--modal-scale', scale);
+    el.style.transform = 'scale(' + scale + ')';
+    w = el.offsetWidth * scale;
+    h = el.offsetHeight * scale;
+  }
   
-  var cx = Math.max(10, Math.floor((maxW - w) / 2));
-  var cy = Math.max(40, Math.floor((maxH - h) / 2));
+  var cx = Math.max(6, Math.floor((maxW - w) / 2));
+  var cy = Math.max(20, Math.floor((maxH - h) / 2));
   
   if (hasRestored) {
-    el.style.left = (parseFloat(el.style.left) || cx) + 'px';
-    el.style.top = (parseFloat(el.style.top) || cy) + 'px';
+    var rLeft = parseFloat(el.style.left);
+    var rTop = parseFloat(el.style.top);
+    if (isNaN(rLeft)) rLeft = cx;
+    if (isNaN(rTop)) rTop = cy;
+    rLeft = Math.max(6, Math.min(rLeft, Math.max(6, maxW - w - 6)));
+    rTop = Math.max(10, Math.min(rTop, Math.max(10, maxH - 48)));
+    el.style.left = rLeft + 'px';
+    el.style.top = rTop + 'px';
     el.style.right = 'auto';
     el.style.bottom = 'auto';
     return;
@@ -1685,7 +1704,8 @@ function makeWindowDraggable(win) {
 }
 
 function setMenuScale(scale) {
-  scale = Math.max(0.5, Math.min(scale, 2));
+  var maxAllowed = window.innerWidth < 600 ? 1.15 : 1.75;
+  scale = Math.max(0.6, Math.min(scale, maxAllowed));
   settings.menuScale = scale;
   document.getElementById('app-menu').style.setProperty('--user-scale', scale);
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -4275,42 +4295,88 @@ function syncSidebarHeightToControls() {
   var mc = document.getElementById('main-controls');
   var sc = document.getElementById('sidebarContent');
   var bc = document.getElementById('bookmarkContent');
+  var brl = document.getElementById('bookmarkRightList');
   if (!mc || !sc) return;
-  var h = mc.getBoundingClientRect().height;
-  if (h > 0 && sc.classList.contains('mini')) {
-    sc.style.height = h + 'px';
-    sc.style.maxHeight = h + 'px';
-    if (bc && bc.classList.contains('mini')) {
-          bc.style.height = 'auto';
-          bc.style.maxHeight = '55vh';
-        }
-  } else {
-    sc.style.height = '';
-    sc.style.maxHeight = '';
+  var h = mc.offsetHeight || 165;
+  if (h > 0) {
+    if (sc.classList.contains('mini')) {
+      sc.style.height = h + 'px';
+      sc.style.maxHeight = h + 'px';
+    } else {
+      var expandedMax = Math.max(h, Math.min(240, Math.floor(window.innerHeight * 0.42)));
+      sc.style.height = 'auto';
+      sc.style.maxHeight = expandedMax + 'px';
+    }
     if (bc) {
-      bc.style.height = '';
-      bc.style.maxHeight = '';
+      bc.style.height = 'auto';
+      bc.style.maxHeight = h + 'px';
+    }
+    if (brl) {
+      brl.style.maxHeight = h + 'px';
     }
   }
 }
 
 function updateMenuPosition() {
-  var anchor  = $fabContainer || $toggleBtn;
-  var rect    = anchor.getBoundingClientRect();
-  var isRight  = (rect.left + rect.width / 2) > (window.innerWidth / 2);
-  var isBottom = (rect.top  + rect.height/ 2) > (window.innerHeight/ 2);
-  $appMenu.style.left   = 'auto'; $appMenu.style.right  = 'auto';
-  $appMenu.style.top    = 'auto'; $appMenu.style.bottom = 'auto';
-  
-  $appMenu.style.transformOrigin = (isBottom ? 'bottom' : 'top') + ' ' + (isRight ? 'right' : 'left');
-  
-  if (isRight) { $appMenu.style.right  = (window.innerWidth - rect.right + 10) + 'px'; }
-  else         { $appMenu.style.left   = (rect.left + 10) + 'px'; }
-  
-  if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
-  else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
-
   syncSidebarHeightToControls();
+  var anchor = $fabContainer || $toggleBtn;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+
+  var fabRect = anchor.getBoundingClientRect();
+  if (anchor.style.left && anchor.style.top) {
+    var clampedFabX = Math.max(8, Math.min(parseFloat(anchor.style.left) || fabRect.left, vw - anchor.offsetWidth - 8));
+    var clampedFabY = Math.max(8, Math.min(parseFloat(anchor.style.top) || fabRect.top, vh - 32 - anchor.offsetHeight));
+    anchor.style.left = clampedFabX + 'px';
+    anchor.style.top = clampedFabY + 'px';
+    fabRect = anchor.getBoundingClientRect();
+  }
+
+  var isRight  = (fabRect.left + fabRect.width / 2) > (vw / 2);
+  var isBottom = (fabRect.top  + fabRect.height / 2) > (vh / 2);
+
+  var userScale = parseFloat(settings.menuScale) || 1;
+  if (vw < 600 && userScale > 1.15) {
+    userScale = 1;
+    settings.menuScale = 1;
+  }
+
+  $appMenu.style.transformOrigin = 'top left';
+  $appMenu.style.left   = '0px';
+  $appMenu.style.top    = '0px';
+  $appMenu.style.right  = 'auto';
+  $appMenu.style.bottom = 'auto';
+
+  var naturalW = $appMenu.offsetWidth || 300;
+  var naturalH = $appMenu.offsetHeight || 200;
+
+  var maxAvailW = vw - 12;
+  var maxAvailH = vh - 42;
+  var fitScaleW = maxAvailW / Math.max(naturalW, 1);
+  var fitScaleH = maxAvailH / Math.max(naturalH, 1);
+  var effectiveScale = Math.min(userScale, fitScaleW, fitScaleH);
+  effectiveScale = Math.max(0.55, Math.min(effectiveScale, 1.8));
+
+  $appMenu.style.setProperty('--user-scale', effectiveScale);
+  $appMenu.style.transform = 'scale(' + effectiveScale + ')';
+
+  var scaledW = naturalW * effectiveScale;
+  var scaledH = naturalH * effectiveScale;
+
+  var targetX = isRight ? (fabRect.right - scaledW) : fabRect.left;
+  var targetY = isBottom ? (fabRect.top - scaledH - 8) : (fabRect.bottom + 8);
+
+  if (targetY < 8 && isBottom && (fabRect.bottom + 8 + scaledH <= vh - 30)) {
+    targetY = fabRect.bottom + 8;
+  } else if (targetY + scaledH > vh - 30 && !isBottom && (fabRect.top - scaledH - 8 >= 8)) {
+    targetY = fabRect.top - scaledH - 8;
+  }
+
+  targetX = Math.max(6, Math.min(targetX, vw - scaledW - 6));
+  targetY = Math.max(6, Math.min(targetY, vh - scaledH - 30));
+
+  $appMenu.style.left = Math.round(targetX) + 'px';
+  $appMenu.style.top  = Math.round(targetY) + 'px';
 }
 
 var dragTarget = $fabContainer || $toggleBtn;
@@ -4337,24 +4403,13 @@ function onPtrMove(e) {
         var menuW = $appMenu.classList.contains('open') ? $appMenu.offsetWidth + 10 : 0;
         var menuH = $appMenu.classList.contains('open') ? $appMenu.offsetHeight + 10 : 0;
         
-        var minX = margin;
-        var minY = margin;
-        var maxX = window.innerWidth - dragTarget.offsetWidth - margin;
-        var maxY = window.innerHeight - 24 - dragTarget.offsetHeight - margin;
-        
-        if ($appMenu.classList.contains('open')) {
-            var isRight = (initialBtnX + dx + dragTarget.offsetWidth / 2) > (window.innerWidth / 2);
-            var isBottom = (initialBtnY + dy + dragTarget.offsetHeight / 2) > (window.innerHeight / 2);
-            
-            if (isRight) { minX = Math.max(minX, menuW); }
-            else { maxX = Math.min(maxX, window.innerWidth - menuW - dragTarget.offsetWidth); }
-            
-            if (isBottom) { minY = Math.max(minY, menuH); }
-            else { maxY = Math.min(maxY, window.innerHeight - menuH - dragTarget.offsetHeight); }
-        }
+        var minX = 8;
+                var minY = 8;
+                var maxX = Math.max(minX, window.innerWidth - dragTarget.offsetWidth - 8);
+                var maxY = Math.max(minY, window.innerHeight - 30 - dragTarget.offsetHeight - 8);
 
-        var newX = Math.max(minX, Math.min(initialBtnX + dx, maxX));
-        var newY = Math.max(minY, Math.min(initialBtnY + dy, maxY));
+                var newX = Math.max(minX, Math.min(initialBtnX + dx, maxX));
+                var newY = Math.max(minY, Math.min(initialBtnY + dy, maxY));
         
         dragTarget.style.left = newX + 'px'; dragTarget.style.top  = newY + 'px';
         dragTarget.style.right = 'auto'; dragTarget.style.bottom = 'auto';
@@ -4471,28 +4526,30 @@ $backdrop.addEventListener('click', function(e) {
   });
   
   handle.addEventListener('pointermove', function(e) {
-    if(!isResizing) return;
-    e.stopPropagation();
-    if(e.cancelable) e.preventDefault();
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
-    // Moving left (-dx) or down (+dy) increases size
-    var delta = (dy - dx) * 0.003; 
-    var newScale = Math.max(0.5, Math.min(startScale + delta, 2.5));
-    document.getElementById('app-menu').style.setProperty('--user-scale', newScale);
-  });
+      if(!isResizing) return;
+      e.stopPropagation();
+      if(e.cancelable) e.preventDefault();
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      var delta = (dy - dx) * 0.0025;
+      var maxAllowed = window.innerWidth < 600 ? 1.15 : 1.75;
+      var newScale = Math.max(0.6, Math.min(startScale + delta, maxAllowed));
+      settings.menuScale = newScale;
+      updateMenuPosition();
+    });
   
-  function endResize(e) {
-    if(!isResizing) return;
-    isResizing = false;
-    e.stopPropagation();
-    var dx = e.clientX - startX;
-    var dy = e.clientY - startY;
-    var delta = (dy - dx) * 0.003;
-    var newScale = Math.max(0.5, Math.min(startScale + delta, 2.5));
+    function endResize(e) {
+      if(!isResizing) return;
+      isResizing = false;
+      e.stopPropagation();
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      var delta = (dy - dx) * 0.0025;
+      var maxAllowed = window.innerWidth < 600 ? 1.15 : 1.75;
+      var newScale = Math.max(0.6, Math.min(startScale + delta, maxAllowed));
     
-    setMenuScale(newScale);
-  }
+      setMenuScale(newScale);
+    }
   
   handle.addEventListener('pointerup', endResize);
     handle.addEventListener('pointercancel', endResize);
