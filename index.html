@@ -59,21 +59,40 @@
   // ===== Login (Email / Google / GitHub) =====
     var authStyleEl = document.createElement('style');
     authStyleEl.textContent =
-      '#authOverlay{position:fixed;inset:0;z-index:2147483000;background:#050507;display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;}' +
+      '#authOverlay{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(ellipse at 50% 0%,#12202b 0%,#08090c 55%,#050507 100%);display:none;padding:16px;box-sizing:border-box;overflow-y:auto;}' +
       '#authOverlay.open{display:flex;}' +
       '#authOverlay.checking #authCard{display:none;}' +
-      '#authOverlay.checking:after{content:"Checking session...";color:rgba(255,255,255,0.6);font-size:11px;}' +
-      '#authCard{width:100%;max-width:340px;background:#0d0e11;border-radius:20px;padding:22px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;color:#ffffff;box-shadow:0 10px 40px rgba(0,0,0,0.6);}' +
-      '#authCard h3{margin:0 0 2px 0;font-size:15px;font-weight:600;text-align:center;}' +
-      '#authCard .auth-sub{margin:0 0 6px 0;font-size:10px;text-align:center;color:rgba(255,255,255,0.6);}' +
-      '#authCard input{width:100%;box-sizing:border-box;background:#08080a;border:none;color:#ffffff;padding:10px 12px;border-radius:10px;outline:none;font-size:12px;}' +
-      '#authCard button{width:100%;height:36px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:#ffffff;background:rgba(255,255,255,0.08);}' +
+      '#authOverlay.checking:after{content:"Checking session...";color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:0.4px;margin:auto;}' +
+      '#authCard{width:100%;max-width:360px;margin:auto;background:linear-gradient(180deg,#14161b 0%,#0d0e11 100%);border-radius:24px;padding:28px 22px 22px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;color:#ffffff;box-shadow:0 20px 60px rgba(0,0,0,0.65),inset 0 0 0 1px rgba(255,255,255,0.07);animation:authCardIn .35s ease;}' +
+      '#authCard h3{margin:0;font-size:19px;font-weight:700;text-align:center;letter-spacing:0.2px;}' +
+      '#authCard .auth-sub{margin:0 0 8px 0;font-size:11.5px;text-align:center;color:rgba(255,255,255,0.55);}' +
+      '#authCard input{width:100%;box-sizing:border-box;background:#08080a;border:none;color:#ffffff;padding:12px 14px;border-radius:12px;outline:none;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);transition:box-shadow .15s;}' +
+      '#authCard button{width:100%;height:42px;border:none;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:#ffffff;background:rgba(255,255,255,0.08);transition:filter .15s,transform .1s;}' +
       '#authCard button:disabled{opacity:0.5;cursor:default;}' +
-      '#authCard button.auth-primary{background:rgba(57,211,83,0.22);color:#39d353;}' +
-      '#authCard button.auth-link{background:transparent;height:auto;padding:2px;font-size:10px;color:rgba(255,255,255,0.65);}' +
-      '#authCard .auth-div{display:flex;align-items:center;gap:8px;font-size:9px;color:rgba(255,255,255,0.4);}' +
+      '#authCard button.auth-primary{background:linear-gradient(135deg,#39d353 0%,#2dd4bf 100%);color:#06130c;font-weight:700;box-shadow:0 6px 18px rgba(57,211,83,0.28);}' +
+      '#authCard button.auth-link{background:transparent;font-size:11px;color:rgba(255,255,255,0.65);}' +
+      '#authCard .auth-div{display:flex;align-items:center;gap:10px;margin:2px 0;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.4);}' +
       '#authCard .auth-div:before,#authCard .auth-div:after{content:"";flex:1;height:1px;background:rgba(255,255,255,0.12);}' +
-      '#authMsg{font-size:10px;min-height:12px;text-align:center;color:#ff6b6b;word-break:break-word;}';
+      '#authMsg{font-size:11px;min-height:14px;text-align:center;color:#ff6b6b;word-break:break-word;line-height:1.4;}' +
+            '#authCard .auth-logo{width:52px;height:52px;margin:0 auto 4px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#06130c;background:linear-gradient(135deg,#39d353 0%,#2dd4bf 100%);box-shadow:0 8px 24px rgba(45,212,191,0.35);}' +
+            '#authCard .auth-field{position:relative;}' +
+            '#authCard .auth-field>i{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:12px;color:rgba(255,255,255,0.4);pointer-events:none;}' +
+            '#authCard .auth-field input{padding-left:38px;}' +
+            '#authCard .auth-field input#authPassword{padding-right:42px;}' +
+            '#authCard button.auth-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;border-radius:10px;background:transparent;color:rgba(255,255,255,0.5);}' +
+            '#authCard input:focus{box-shadow:0 0 0 2px rgba(45,212,191,0.55);}' +
+            '#authCard input::placeholder{color:rgba(255,255,255,0.35);}' +
+            '#authCard input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #08080a inset;-webkit-text-fill-color:#ffffff;caret-color:#ffffff;}' +
+            '#authCard .auth-row{display:flex;gap:8px;}' +
+            '#authCard .auth-row button{flex:1;width:auto;}' +
+            '#authCard button.auth-google{background:#ffffff;color:#1f1f1f;}' +
+            '#authCard button.auth-google i{color:#ea4335;font-size:14px;}' +
+            '#authCard button.auth-github{background:#1b1f24;color:#ffffff;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.14);}' +
+            '#authCard button.auth-github i{font-size:15px;}' +
+            '#authCard .auth-foot{margin:2px 0 0;font-size:9.5px;text-align:center;color:rgba(255,255,255,0.35);}' +
+            '#authCard button:not(:disabled):hover{filter:brightness(1.12);}' +
+            '#authCard button.auth-primary:active,#authCard button.auth-social:active,#authCard .auth-row button:active{transform:scale(0.98);}' +
+            '@keyframes authCardIn{from{opacity:0;transform:translateY(14px) scale(0.98);}to{opacity:1;transform:none;}}';
     document.head.appendChild(authStyleEl);
 
     var authOverlayEl = document.createElement('div');
@@ -81,17 +100,22 @@
     authOverlayEl.className = 'open checking';
     authOverlayEl.innerHTML =
       '<div id="authCard">' +
-        '<h3>AI Compile PRO</h3>' +
-        '<p class="auth-sub">Sign in to continue</p>' +
-        '<input type="email" id="authEmail" placeholder="Email" autocomplete="email">' +
-        '<input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">' +
-        '<button type="button" id="authEmailSignInBtn" class="auth-primary">Sign in with email</button>' +
-        '<button type="button" id="authEmailSignUpBtn">Create account</button>' +
-        '<button type="button" id="authResetBtn" class="auth-link">Forgot password?</button>' +
-        '<div class="auth-div">or</div>' +
-        '<button type="button" id="authGoogleBtn"><i class="fa-brands fa-google"></i> Continue with Google</button>' +
-        '<button type="button" id="authGithubBtn"><i class="fa-brands fa-github"></i> Continue with GitHub</button>' +
-        '<div id="authMsg"></div>' +
+        '<div class="auth-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>' +
+                '<h3>AI Compile PRO</h3>' +
+                '<p class="auth-sub">Sign in to continue</p>' +
+                '<button type="button" id="authGoogleBtn" class="auth-social auth-google"><i class="fa-brands fa-google"></i> Continue with Google</button>' +
+                '<button type="button" id="authGithubBtn" class="auth-social auth-github"><i class="fa-brands fa-github"></i> Continue with GitHub</button>' +
+                '<div class="auth-div">or use email</div>' +
+                '<div class="auth-field"><i class="fa-solid fa-envelope"></i><input type="email" id="authEmail" placeholder="Email" autocomplete="email"></div>' +
+                '<div class="auth-field"><i class="fa-solid fa-lock"></i><input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">' +
+                  '<button type="button" id="authPwToggle" class="auth-eye" tabindex="-1" aria-label="Show or hide password" onclick="var p=document.getElementById(\'authPassword\');var s=p.type===\'password\';p.type=s?\'text\':\'password\';this.firstChild.className=s?\'fa-solid fa-eye-slash\':\'fa-solid fa-eye\';"><i class="fa-solid fa-eye"></i></button></div>' +
+                '<button type="button" id="authEmailSignInBtn" class="auth-primary">Sign in</button>' +
+                '<div class="auth-row">' +
+                  '<button type="button" id="authEmailSignUpBtn">Create account</button>' +
+                  '<button type="button" id="authResetBtn" class="auth-link">Forgot password?</button>' +
+                '</div>' +
+                '<div id="authMsg"></div>' +
+                '<p class="auth-foot">Your settings sync securely to your account.</p>' +
       '</div>';
     document.body.appendChild(authOverlayEl);
     ['keydown', 'keyup', 'paste', 'copy', 'cut'].forEach(function(evt) {
