@@ -567,6 +567,12 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 .bm-lib-chip:hover { background: rgba(255,255,255,0.1); border: none !important; }
 select.bm-select { width: 100%; background: transparent; border: none !important; color: #ffffff; padding: 8px 12px; border-radius: 6px; outline: none !important; font-size: 12px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
+.bm-ui-dropdown { position: relative; display: inline-flex; }
+.bm-ui-dropdown-menu { position: absolute; top: calc(100% + 5px); right: 0; background: #181a1f; border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 4px; display: none; flex-direction: column; gap: 2px; min-width: 195px; z-index: 30050; box-shadow: 0 10px 28px rgba(0,0,0,0.75); }
+.bm-ui-dropdown-menu.open { display: flex; }
+.bm-ui-dropdown-item { background: transparent; border: none !important; color: #ffffff; padding: 6px 10px; font-size: 10px; font-weight: 500; text-align: left; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; transition: background 0.15s; white-space: nowrap; }
+.bm-ui-dropdown-item:hover { background: rgba(255,255,255,0.1); }
+.bm-ui-dropdown-item i { width: 13px; text-align: center; font-size: 10px; }
 
 /* Cropper Modal */
 #iconCropModal {
@@ -986,20 +992,19 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
               <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
               <div style="display:flex; gap:6px;">
-                                      <select id="bmYamlConfigSelect" class="bm-select" style="width:auto; padding:2px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.2) !important; color:#fff; cursor:pointer;" title="Select YAML Config Type">
-                                                                              <option value="" selected disabled>⚡ YAML Config Type...</option>
-                                                                              <option value="wrapper">📦 HTML Wrapper (Cordova APK)</option>
-                                                                              <option value="native">✨ Native Android App (AI Prompt)</option>
-                                                                              <option value="windows">🪟 Windows EXE (Tauri AI Prompt)</option>
-                                                                              <option value="playwright">🎭 Playwright Visual Tests</option>
-                                                                              <option value="lighthouse">🚀 Lighthouse CI Audit</option>
-                                                                              <option value="clouddesktop">🖥️ Cloud Desktop (noVNC)</option>
-                                                                            </select>
-                                                                            <button id="bmClearYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear YAML"><i class="fa-solid fa-trash" style="margin-right:3px;"></i>Clear</button>
+                                      <button id="bmClearYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear YAML"><i class="fa-solid fa-trash" style="margin-right:3px;"></i>Clear</button>
                                                                             <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
-                                                                            <button id="bmUseWrapperYamlBtn" type="button" style="display:none;"></button>
-                                                                            <button id="bmCopyYamlPromptBtn" type="button" style="display:none;"></button>
-                                                                            <button id="bmWinPromptBtn" type="button" style="display:none;"></button>
+                                                                            <div class="bm-ui-dropdown" id="bmYamlDropdown">
+                                                                              <button id="bmYamlDropdownBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; gap:4px;" title="Select YAML Config Type"><i class="fa-solid fa-layer-group"></i><span>YAML Configs</span><i class="fa-solid fa-chevron-down" style="font-size:8px; opacity:0.7;"></i></button>
+                                                                              <div class="bm-ui-dropdown-menu" id="bmYamlDropdownMenu">
+                                                                                <button id="bmUseWrapperYamlBtn" type="button" class="bm-ui-dropdown-item" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="color:var(--blue);"></i>HTML Wrapper (APK)</button>
+                                                                                <button id="bmCopyYamlPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--amber);"></i>Native App Prompt</button>
+                                                                                <button id="bmWinPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy Windows EXE prompt for AI"><i class="fa-brands fa-windows" style="color:var(--teal);"></i>Windows EXE Prompt</button>
+                                                                                <button type="button" class="bm-ui-dropdown-item" data-wf="playwright" title="Load Playwright Visual Tests YAML"><i class="fa-solid fa-masks-theater" style="color:var(--green);"></i>Playwright Visual Tests</button>
+                                                                                <button type="button" class="bm-ui-dropdown-item" data-wf="lighthouse" title="Load Lighthouse CI Audit YAML"><i class="fa-solid fa-gauge-high" style="color:var(--amber);"></i>Lighthouse CI Audit</button>
+                                                                                <button type="button" class="bm-ui-dropdown-item" data-wf="clouddesktop" title="Load Cloud Desktop YAML"><i class="fa-solid fa-desktop" style="color:var(--blue);"></i>Cloud Desktop (noVNC)</button>
+                                                                              </div>
+                                                                            </div>
                                                             </div>
                     </div>
                     <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:6px;"></textarea>
@@ -9854,26 +9859,28 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                   });
                                                                 });
 
-                                                                var bmYamlConfigSelectEl = document.getElementById('bmYamlConfigSelect');
-                                                                if (bmYamlConfigSelectEl) {
-                                                                  bmYamlConfigSelectEl.addEventListener('change', function() {
-                                                                    var val = this.value;
-                                                                    if (val === 'wrapper' && bmUseWrapperYamlBtnEl) {
-                                                                      bmUseWrapperYamlBtnEl.click();
-                                                                    } else if (val === 'native' && bmCopyYamlPromptBtnEl) {
-                                                                      bmCopyYamlPromptBtnEl.click();
-                                                                    } else if (val === 'windows' && bmWinPromptBtnEl) {
-                                                                      bmWinPromptBtnEl.click();
-                                                                    } else if (val === 'playwright' && window.loadPlaywrightWorkflow) {
-                                                                      window.loadPlaywrightWorkflow();
-                                                                    } else if (val === 'lighthouse' && window.loadLighthouseWorkflow) {
-                                                                      window.loadLighthouseWorkflow();
-                                                                    } else if (val === 'clouddesktop' && window.loadCloudDesktopWorkflow) {
-                                                                      window.loadCloudDesktopWorkflow();
-                                                                    }
-                                                                    this.selectedIndex = 0;
-                                                                  });
-                                                                }
+                                                                var bmYamlDropdownBtnEl = document.getElementById('bmYamlDropdownBtn');
+                                                                                              var bmYamlDropdownMenuEl = document.getElementById('bmYamlDropdownMenu');
+                                                                                              if (bmYamlDropdownBtnEl && bmYamlDropdownMenuEl) {
+                                                                                                bmYamlDropdownBtnEl.addEventListener('click', function(e) {
+                                                                                                  e.stopPropagation();
+                                                                                                  bmYamlDropdownMenuEl.classList.toggle('open');
+                                                                                                });
+                                                                                                bmYamlDropdownMenuEl.querySelectorAll('.bm-ui-dropdown-item').forEach(function(item) {
+                                                                                                  item.addEventListener('click', function() {
+                                                                                                    var wf = this.getAttribute('data-wf');
+                                                                                                    if (wf === 'playwright' && window.loadPlaywrightWorkflow) window.loadPlaywrightWorkflow();
+                                                                                                    else if (wf === 'lighthouse' && window.loadLighthouseWorkflow) window.loadLighthouseWorkflow();
+                                                                                                    else if (wf === 'clouddesktop' && window.loadCloudDesktopWorkflow) window.loadCloudDesktopWorkflow();
+                                                                                                    bmYamlDropdownMenuEl.classList.remove('open');
+                                                                                                  });
+                                                                                                });
+                                                                                                document.addEventListener('click', function(e) {
+                                                                                                  if (!bmYamlDropdownMenuEl.contains(e.target) && e.target !== bmYamlDropdownBtnEl) {
+                                                                                                    bmYamlDropdownMenuEl.classList.remove('open');
+                                                                                                  }
+                                                                                                });
+                                                                                              }
 
                               // Icon Cropper State & Logic
                               let iconCropperInstance = null;
