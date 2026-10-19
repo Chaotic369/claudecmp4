@@ -714,6 +714,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                   <button id="autoPickBtn" class="btn" title="AUTO (one click): picks the right code chunks from your instruction, no AI step 1 needed" style="color: var(--purple); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-brain" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Auto</span></button>
                                                                   <button id="chunkMapBtn" class="btn" title="Step 1: copy file INDEX + instruction (AI replies with the chunks it needs)" style="color: var(--teal); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-map" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Index</span></button>
                                                                   <button id="chunkPickBtn" class="btn" title="Step 2: copy the AI reply first, then click: builds payload with ONLY the chunks it asked for" style="color: var(--green); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-puzzle-piece" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Chunks</span></button>
+                                                                  <button id="multiProjectIndexBtn" class="btn" title="Multi-Project / Multi-File Step 1: Copy Index of all project files + instruction" style="color: var(--teal); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-layer-group" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Multi 1</span></button>
+                                                                  <button id="multiProjectChunksBtn" class="btn" title="Multi-Project / Multi-File Step 2: Copy Chunks requested by AI across files" style="color: var(--green); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-boxes-stacked" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Multi 2</span></button>
+                                                                  <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Commit All</span></button>
                                                                   <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Repair</span></button>
                                                                   <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: auto; min-width: 20px; height: auto; min-height: 24px; flex: 1; background: rgba(255,255,255,0.08); padding: 2px 2px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-rocket" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6.5px;">Payload</span></button>
                                                                 </div>
@@ -6940,24 +6943,47 @@ function buildChunkMap(src) {
 
 /* 13.7 prompts */
 var MAP_PROMPT =
-  'ROLE: code-editing PLANNER, STEP 1 of 2. Do NOT write code or patches.\n\n' +
-    'Below is an INDEX of a large file cut into chunks (id | kind | name | lines | size | contents). The code is not included.\n\n' +
-    'TASK: From the INSTRUCTIONS, pick the chunks I must send in STEP 2 to write correct patches.\n' +
-    '- Include every chunk to change.\n' +
-    '- Include chunks it depends on or that depend on it: functions and variables it calls, the HTML markup AND CSS of any element it touches, event handlers wired to it, storage keys or state it uses.\n' +
-    '- If unsure, include it. Prefer the smallest sufficient set. Use only ids from the index.\n\n' +
-    'REPLY ONLY IN THIS FORMAT, NO EXPLANATION:\n' +
-    'NEEDED: C03, C12, C13\n' +
-    'EDIT: C12, C13';
+  'ROLE: code-editing PLANNER, STEP 1 of 2. Do NOT write code or patches.\n\n' +
+    'Below is an INDEX of a large file cut into chunks (id | kind | name | lines | size | contents). The code is not included.\n\n' +
+    'TASK: From the INSTRUCTIONS, pick the chunks I must send in STEP 2 to write correct patches.\n' +
+    '- Include every chunk to change.\n' +
+    '- Include chunks it depends on or that depend on it: functions and variables it calls, the HTML markup AND CSS of any element it touches, event handlers wired to it, storage keys or state it uses.\n' +
+    '- If unsure, include it. Prefer the smallest sufficient set. Use only ids from the index.\n\n' +
+    'REPLY ONLY IN THIS FORMAT, NO EXPLANATION:\n' +
+    'NEEDED: C03, C12, C13\n' +
+    'EDIT: C12, C13';
+
+var MULTI_MAP_PROMPT =
+  'ROLE: multi-file/project code-editing PLANNER, STEP 1 of 2. Do NOT write code or patches.\n\n' +
+  'Below is a MULTI-FILE PROJECT INDEX of files split into chunks organized per file.\n' +
+  'Chunk IDs have unique prefixes per file (e.g., F1_C01, F2_C04, etc.).\n\n' +
+  'TASK: From the INSTRUCTIONS, pick the chunks I must send in STEP 2 to write correct patches across files.\n' +
+  '- Include every chunk to change across any project file.\n' +
+  '- Include chunks it depends on or that depend on it (definitions, calls, cross-file imports/exports, markup/CSS/JS bindings).\n' +
+  '- Reply with the chunk IDs irrespective of which file they belong to.\n\n' +
+  'REPLY ONLY IN THIS FORMAT, NO EXPLANATION:\n' +
+  'NEEDED: F1_C02, F1_C08, F2_C03, F3_C15\n' +
+  'EDIT: F1_C08, F2_C03';
 
 var CHUNK_NOTE =
-  'NOTE: This is STEP 2 of 2. The file is large, so only the SELECTED CHUNKS are shown, in file order. ' +
-  'Each chunk starts with a header line "##### CHUNK Cxx ... #####". Headers are labels only, NOT part of the code.\n' +
-  '- Never copy a header line into OLD or NEW.\n' +
-  '- Every OLD block must be copied verbatim from inside ONE chunk (never span two chunks) and must be unique within what is shown.\n' +
-  '- The OUTLINE lists all other chunks so you know what exists. Do not guess their code.\n' +
-  '- If you realise you need a chunk that is not shown, do NOT guess. Reply in plain text only with: NEED: Cxx, Cyy\n' +
-  '- All rules above (patch format, indentation, brackets, etc.) still apply.';
+  'NOTE: This is STEP 2 of 2. The file is large, so only the SELECTED CHUNKS are shown, in file order. ' +
+  'Each chunk starts with a header line "##### CHUNK Cxx ... #####". Headers are labels only, NOT part of the code.\n' +
+  '- Never copy a header line into OLD or NEW.\n' +
+  '- Every OLD block must be copied verbatim from inside ONE chunk (never span two chunks) and must be unique within what is shown.\n' +
+  '- The OUTLINE lists all other chunks so you know what exists. Do not guess their code.\n' +
+  '- If you realise you need a chunk that is not shown, do NOT guess. Reply in plain text only with: NEED: Cxx, Cyy\n' +
+  '- All rules above (patch format, indentation, brackets, etc.) still apply.';
+
+var MULTI_CHUNK_NOTE =
+  'NOTE: This is STEP 2 of 2 for MULTI-FILE / MULTI-PROJECT EDITING.\n' +
+  'Chunks are provided below organized by file. Each file chunk header starts with:\n' +
+  '##### FILE: path/to/file | ID Fx_Cyy Name (lines a-b) #####\n' +
+  '- In your patch response, whenever you edit a chunk from a specific file, include a comment line specifying the target file if changing multiple files:\n' +
+  '  // FILE: path/to/file\n' +
+  '  followed by the standard OLD code / NEW code patch pattern.\n' +
+  '- Every OLD block must be copied verbatim from within the selected chunk of that specific file.\n' +
+  '- Do not guess code from other chunks or files not shown. If you need more chunks from any file, respond: NEED: F1_Cxx, F2_Cyy.\n' +
+  '- All standard patch rules apply.';
 
 function cmIndexText(chunks, total) {
   var kb = function (n) { return n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'K'; };
@@ -6968,13 +6994,18 @@ function cmIndexText(chunks, total) {
 }
 
 function cmParseIds(text) {
-  var ids = [], seen = {};
-  var lines = (text || '').split('\n');
-  var take = function (s) { (s.match(/\bC\d{2,3}\b/gi) || []).forEach(function (x) { x = x.toUpperCase(); if (!seen[x]) { seen[x] = 1; ids.push(x); } }); };
-  var hit = false;
-  lines.forEach(function (l) { if (/^\s*[*_`#>\-\s]*(NEEDED|NEED|EDIT)\b\s*[:=]/i.test(l)) { hit = true; take(l); } });
-  if (!hit) take(text || '');
-  return ids;
+  var ids = [], seen = {};
+  var lines = (text || '').split('\n');
+  var take = function (s) { 
+    (s.match(/\b(?:F\d+_)?C\d{2,3}\b/gi) || []).forEach(function (x) { 
+      x = x.toUpperCase(); 
+      if (!seen[x]) { seen[x] = 1; ids.push(x); } 
+    }); 
+  };
+  var hit = false;
+  lines.forEach(function (l) { if (/^\s*[*_`#>\-\s]*(NEEDED|NEED|EDIT)\b\s*[:=]/i.test(l)) { hit = true; take(l); } });
+  if (!hit) take(text || '');
+  return ids;
 }
 
 /* 13.8 condensed rules for chunk payloads (the 🚀 full payload keeps the long SUPER_PROMPT) */
@@ -6993,8 +7024,9 @@ var RULES_LITE =
   '- If the change would replace more than 60% of the file, say so in plain text BEFORE the code block and ask for confirmation.\n' +
   '- Output ONLY the code block. Any concern goes in plain text before it.';
 
-var patchScope = null;        // { base, ranges:[{s,e}] } -> tie-break for OLD text that occurs several times
-var lastPatchFailure = null;  // { kind, raw, blockNum, reason, oldCode }
+var patchScope = null;        // { base, ranges:[{s,e}] } -> tie-break for OLD text that occurs several times
+var lastPatchFailure = null;  // { kind, raw, blockNum, reason, oldCode }
+var lastMultiProjectMap = null;
 
 /* 13.9 payload builder shared by 🧩 (AI-picked) and 🧠 (auto-picked) */
 function cmBuildPayload(chunks, picked, instruction, how) {
@@ -7131,14 +7163,186 @@ function cmCopy(text, okMsg) {
 }
 
 function copyChunkIndexPayload() {
-  var chunks = cmCurrentMap(); if (!chunks) return;
+  var chunks = cmCurrentMap(); if (!chunks) return;
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  lastChunkMap = { hash: cmHash(sourceContent), chunks: chunks, file: cmFileId() };
+  lastChunkSelection = [];
+  var payload = MAP_PROMPT + '\n\n' + (instruction ? '=== INSTRUCTIONS ===\n' + instruction + '\n\n' : '') +
+    '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
+  cmCopy(payload, '🗺 Step 1 copied: index only (' + Math.round(payload.length / 1024) + ' KB). Give it to the AI, then click 🧩.');
+  addLog('info', 'Chunk index copied: ' + chunks.length + ' chunks.');
+}
+
+async function getMultiProjectFilesMap() {
+  syncEditorToSource();
+  window.workspaceFiles = window.workspaceFiles || {};
+  var fileMap = {};
+
+  for (var p in window.workspaceFiles) {
+    if (Object.prototype.hasOwnProperty.call(window.workspaceFiles, p) && typeof window.workspaceFiles[p].content === 'string') {
+      fileMap[p] = window.workspaceFiles[p].content;
+    }
+  }
+
+  if (ghFilePath && sourceContent) {
+    fileMap[ghFilePath] = sourceContent;
+  }
+
+  if (Object.keys(fileMap).length <= 1 && typeof currentTreeFiles !== 'undefined' && currentTreeFiles && currentTreeFiles.length > 0 && ghToken && ghRepo) {
+    var textExts = ['.html', '.htm', '.js', '.css', '.json', '.txt', '.md', '.ts', '.tsx', '.jsx', '.xml', '.svg', '.yaml', '.yml', '.py', '.java', '.kt', '.c', '.cpp', '.h', '.sh', '.gradle'];
+    var candidates = currentTreeFiles.filter(function(f) {
+      var low = f.path.toLowerCase();
+      return textExts.some(function(ext) { return low.endsWith(ext); });
+    }).slice(0, 30);
+
+    var toFetch = candidates.filter(function(f) { return !fileMap[f.path]; });
+    if (toFetch.length > 0) {
+      toast('⏳ Loading ' + toFetch.length + ' project files for multi-chunk workflow...', 'info');
+      showProgress(20);
+      for (var fi = 0; fi < toFetch.length; fi++) {
+        var tf = toFetch[fi];
+        try {
+          var getRes = await fetch('https://api.github.com/repos/' + ghRepo + '/contents/' + tf.path + '?ref=' + ghBranch, {
+            headers: { Authorization: 'token ' + ghToken, Accept: 'application/vnd.github.v3+json' }
+          });
+          if (getRes.ok) {
+            var fileData = await getRes.json();
+            var bStr = atob((fileData.content || '').replace(/\s/g, ''));
+            var bArr = new Uint8Array(bStr.length);
+            for (var bi = 0; bi < bStr.length; bi++) bArr[bi] = bStr.charCodeAt(bi);
+            var dec = new TextDecoder('utf-8').decode(bArr);
+            fileMap[tf.path] = dec;
+            window.workspaceFiles[tf.path] = { content: dec, modified: false };
+          }
+        } catch(err) {}
+      }
+      hideProgress();
+    }
+  }
+
+  return fileMap;
+}
+
+async function copyMultiProjectIndexPayload() {
+  var fileMap = await getMultiProjectFilesMap();
+  var filePaths = Object.keys(fileMap);
+  if (filePaths.length === 0) {
+    toast('❌ No project files loaded in workspace or repo. Open or load files first.', 'warn', 5000);
+    return;
+  }
+
   var instruction = document.getElementById('aiInstruction').value.trim();
-  lastChunkMap = { hash: cmHash(sourceContent), chunks: chunks, file: cmFileId() };
-  lastChunkSelection = [];
-  var payload = MAP_PROMPT + '\n\n' + (instruction ? '=== INSTRUCTIONS ===\n' + instruction + '\n\n' : '') +
-    '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
-  cmCopy(payload, '🗺 Step 1 copied: index only (' + Math.round(payload.length / 1024) + ' KB). Give it to the AI, then click 🧩.');
-  addLog('info', 'Chunk index copied: ' + chunks.length + ' chunks.');
+  var multiState = { files: {}, allChunks: [] };
+  var indexSections = [];
+  var totalChars = 0;
+
+  filePaths.forEach(function(path, fIdx) {
+    var content = fileMap[path];
+    totalChars += content.length;
+    var prefix = 'F' + (fIdx + 1) + '_';
+    var chunks = buildChunkMap(content);
+    chunks.forEach(function(c) {
+      c.globalId = prefix + c.id;
+      c.filePath = path;
+      multiState.allChunks.push(c);
+    });
+    multiState.files[path] = { content: content, chunks: chunks, prefix: prefix, index: fIdx + 1 };
+
+    var kb = function(n) { return n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'K'; };
+    var chunkLines = chunks.map(function(c) {
+      return c.globalId + ' | ' + c.kind + ' | ' + c.name + ' | L' + (c.a + 1) + '-' + (c.b + 1) + ' | ' + kb(c.chars) +
+             (c.desc ? ' | ' + cmClean(c.desc, 80) : '');
+    }).join('\n');
+
+    indexSections.push('--- FILE [' + prefix.slice(0, -1) + ']: ' + path + ' (' + chunks.length + ' chunks, ' + kb(content.length) + ') ---\n' + chunkLines);
+  });
+
+  lastMultiProjectMap = multiState;
+  var payload = MULTI_MAP_PROMPT + '\n\n' +
+    (instruction ? '=== INSTRUCTIONS ===\n' + instruction + '\n\n' : '') +
+    '=== MULTI-PROJECT FILE INDEX (' + filePaths.length + ' files, ' + multiState.allChunks.length + ' chunks, ' + Math.round(totalChars / 1024) + ' KB total) ===\n\n' +
+    indexSections.join('\n\n');
+
+  cmCopy(payload, '🗺 Multi-Project Step 1 copied! (' + filePaths.length + ' files, ' + multiState.allChunks.length + ' chunks). Send to AI, then click Multi 2.');
+  addLog('ok', 'Multi-project chunk index copied: ' + filePaths.length + ' files, ' + multiState.allChunks.length + ' chunks.');
+}
+
+async function copyMultiProjectChunksPayload(replyText) {
+  if (!lastMultiProjectMap) {
+    var refreshed = await getMultiProjectFilesMap();
+    if (Object.keys(refreshed).length > 0) {
+      await copyMultiProjectIndexPayload();
+    } else {
+      toast('Run Multi-Project Step 1 first to index project files.', 'warn', 4000);
+      return;
+    }
+  }
+
+  var ids = cmParseIds(replyText);
+  if (!ids.length) {
+    toast('No chunk IDs (like F1_C02 or C05) in clipboard/reply. Copy the AI reply first.', 'warn', 5000);
+    return;
+  }
+
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  var chunksByGlobalId = {};
+  lastMultiProjectMap.allChunks.forEach(function(c) {
+    chunksByGlobalId[c.globalId.toUpperCase()] = c;
+    chunksByGlobalId[c.id.toUpperCase()] = c;
+  });
+
+  var picked = [], missing = [];
+  ids.forEach(function(id) {
+    var c = chunksByGlobalId[id.toUpperCase()];
+    if (c) {
+      if (picked.indexOf(c) === -1) picked.push(c);
+    } else {
+      missing.push(id);
+    }
+  });
+
+  if (!picked.length) {
+    toast('None of the IDs matched multi-project chunks. Re-run Multi Step 1.', 'err', 5000);
+    return;
+  }
+
+  var fileGroups = {};
+  picked.forEach(function(c) {
+    fileGroups[c.filePath] = fileGroups[c.filePath] || [];
+    fileGroups[c.filePath].push(c);
+  });
+
+  var bodyParts = [];
+  var totalPickedChars = 0;
+  var hTag = '##' + '###';
+  for (var filePath in fileGroups) {
+    var filePicked = fileGroups[filePath];
+    filePicked.sort(function(a, b) { return a.a - b.a; });
+    var fileContent = lastMultiProjectMap.files[filePath].content;
+    var fPrefix = lastMultiProjectMap.files[filePath].prefix;
+
+    var groupHeaders = '=== FILE: ' + filePath + ' (Prefix ' + fPrefix.slice(0, -1) + ') ===\n';
+    var chunkSnippets = filePicked.map(function(c) {
+      totalPickedChars += c.chars;
+      return hTag + ' FILE: ' + filePath + ' | ID ' + c.globalId + ' ' + c.name + ' (lines ' + (c.a + 1) + '-' + (c.b + 1) + ') ' + hTag + '\n' +
+             fileContent.slice(c.startIndex, c.endIndex);
+    }).join('\n\n');
+
+    bodyParts.push(groupHeaders + chunkSnippets);
+  }
+
+  var outline = lastMultiProjectMap.allChunks.filter(function(c) { return picked.indexOf(c) === -1; })
+    .map(function(c) { return c.globalId + ' ' + c.kind + ' ' + c.filePath + ' > ' + c.name; }).join('\n');
+
+  var payload = RULES_LITE + '\n\n' + MULTI_CHUNK_NOTE + '\n\n' +
+    (instruction ? '=== INSTRUCTIONS ===\n' + instruction + '\n\n' : '') +
+    '=== OUTLINE OF CHUNKS NOT SHOWN ===\n' + (outline || '(none)') + '\n\n' +
+    '=== SELECTED CHUNKS ===\n' + bodyParts.join('\n\n====================\n\n');
+
+  var msg = '🧩 Multi Step 2 copied: ' + picked.length + ' chunk(s) across ' + Object.keys(fileGroups).length + ' file(s) (' + Math.round(totalPickedChars / 1024) + ' KB).';
+  if (missing.length) msg += '\n⚠ Unknown IDs: ' + missing.join(', ');
+  cmCopy(payload, msg);
+  addLog('ok', 'Multi-file chunk payload copied for ' + picked.length + ' chunks.');
 }
 
 function copyChunkSelectionPayload(replyText) {
@@ -7304,11 +7508,51 @@ document.getElementById('autoPickBtn').addEventListener('click', copyAutoPayload
 document.getElementById('repairBtn').addEventListener('click', copyRepairPrompt);
 document.getElementById('chunkMapBtn').addEventListener('click', copyChunkIndexPayload);
 document.getElementById('chunkPickBtn').addEventListener('click', function () {
-  var go = function (t) { copyChunkSelectionPayload(t || ''); };
-  if (navigator.clipboard && navigator.clipboard.readText) {
-    navigator.clipboard.readText().then(go).catch(function () { go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || ''); });
-  } else go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || '');
+  var go = function (t) { copyChunkSelectionPayload(t || ''); };
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(go).catch(function () { go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || ''); });
+  } else go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || '');
 });
+
+var mIdxBtn = document.getElementById('multiProjectIndexBtn');
+if (mIdxBtn) mIdxBtn.addEventListener('click', copyMultiProjectIndexPayload);
+
+var mChkBtn = document.getElementById('multiProjectChunksBtn');
+if (mChkBtn) {
+  mChkBtn.addEventListener('click', function() {
+    var go = function(t) { copyMultiProjectChunksPayload(t || ''); };
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(go).catch(function() { go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || ''); });
+    } else {
+      go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || '');
+    }
+  });
+}
+
+var commitAllBtn = document.getElementById('commitAllFilesBtn');
+if (commitAllBtn) {
+  commitAllBtn.addEventListener('click', function() {
+    syncEditorToSource();
+    if (!ghToken || !ghRepo) {
+      toast('❌ Configure GitHub Token and select a Repo first.', 'warn');
+      document.getElementById('ghSettingsBtn').click();
+      return;
+    }
+    var count = 0;
+    if (window.workspaceFiles) {
+      for (var p in window.workspaceFiles) {
+        if (window.workspaceFiles[p].modified) count++;
+      }
+    }
+    if (sourceContent && ghFilePath && sourceContent !== lastSavedContent) count++;
+    if (count === 0) {
+      toast('No modified files to commit.', 'info');
+      return;
+    }
+    document.getElementById('commitMsgInput').value = 'Commit all files (' + count + ' modified) via Sovereign IDE';
+    document.getElementById('cmConfirmBtn').click();
+  });
+}
 
 
 /* LITE PAYLOAD: for large files send only the relevant slice (Shift-click = full file).
@@ -8101,34 +8345,40 @@ function normaliseSplitTokens(text) {
 }
 
 function parseAllBlocks(text) {
-  text = text.replace(/^[ \t]*#{3,}[ \t]*CHUNK\b.*$/gim, '');   // 13: chunk header labels are never code
-  var cleaned = stripCodeFences(text);
-  cleaned = normaliseSplitTokens(cleaned);
-  cleaned = cleaned
-    .replace(/\/\/\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
-    .replace(/#\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
-    .trim();
+  text = text.replace(/^[ \t]*#{3,}[ \t]*(?:FILE:.*?\s*\|\s*)?(?:ID|CHUNK)\b.*$/gim, '');   // 13: chunk header labels are never code
+  var cleaned = stripCodeFences(text);
+  cleaned = normaliseSplitTokens(cleaned);
+  cleaned = cleaned
+    .replace(/\/\/\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
+    .replace(/#\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
+    .trim();
 
-  if (sourceContent && cleaned.length > sourceContent.length * NUKE_THRESHOLD) {
-    var ratio = ((cleaned.length / sourceContent.length) * 100).toFixed(0);
-    addLog('warn', 'Nuke Warning: patch is ' + ratio + '% of file size.');
-    toast('⚠ Patch is ' + ratio + '% of file size (Scenario 13).\nApplying anyway – use Undo if wrong.', 'warn', 6000);
-  }
+  if (sourceContent && cleaned.length > sourceContent.length * NUKE_THRESHOLD) {
+    var ratio = ((cleaned.length / sourceContent.length) * 100).toFixed(0);
+    addLog('warn', 'Nuke Warning: patch is ' + ratio + '% of file size.');
+    toast('⚠ Patch is ' + ratio + '% of file size (Scenario 13).\nApplying anyway – use Undo if wrong.', 'warn', 6000);
+  }
 
-  var units = cleaned.split(new RegExp(BLOCK_TOKEN.replace(/=/g, '='), 'i'))
-    .map(function(u) { return u.trim(); })
-    .filter(Boolean);
+  var units = cleaned.split(new RegExp(BLOCK_TOKEN.replace(/=/g, '='), 'i'))
+    .map(function(u) { return u.trim(); })
+    .filter(Boolean);
 
-  var blocks = [];
-  units.forEach(function(u) {
-    if (!u.includes(SPLIT_TOKEN)) return;
-    var idx     = u.indexOf(SPLIT_TOKEN);
-    var oldCode = u.slice(0, idx).trim();
-    var newCode = u.slice(idx + SPLIT_TOKEN.length).trim();
-    if (oldCode || newCode) blocks.push({ oldCode: oldCode, newCode: newCode });
-  });
+  var blocks = [];
+  units.forEach(function(u) {
+    if (!u.includes(SPLIT_TOKEN)) return;
+    var targetFile = null;
+    var fileMatch = u.match(/^(?:\/\/\s*FILE:\s*|\x23\s*FILE:\s*)([^\r\n]+)/im);
+    if (fileMatch) {
+      targetFile = fileMatch[1].trim();
+      u = u.replace(/^(?:\/\/\s*FILE:\s*|\x23\s*FILE:\s*)[^\r\n]+\r?\n?/im, '');
+    }
+    var idx     = u.indexOf(SPLIT_TOKEN);
+    var oldCode = u.slice(0, idx).trim();
+    var newCode = u.slice(idx + SPLIT_TOKEN.length).trim();
+    if (oldCode || newCode) blocks.push({ oldCode: oldCode, newCode: newCode, file: targetFile });
+  });
 
-  return blocks;
+  return blocks;
 }
 
 function countOccurrences(source, chunk) {
@@ -8294,8 +8544,107 @@ function doPaste(raw) {
 
   var blocks = parseAllBlocks(raw);
 
-  if (!sourceContent && blocks.length === 0) {
-    sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    var hasExplicitFiles = blocks.some(function(b) { return !!b.file; });
+    if (hasExplicitFiles || (lastMultiProjectMap && blocks.length > 0)) {
+      window.workspaceFiles = window.workspaceFiles || {};
+      var stagedFiles = {};
+      var getFileBase = function(fPath) {
+        if (stagedFiles[fPath] !== undefined) return stagedFiles[fPath];
+        if (fPath === ghFilePath && sourceContent) return sourceContent;
+        if (window.workspaceFiles[fPath]) return window.workspaceFiles[fPath].content;
+        if (lastMultiProjectMap && lastMultiProjectMap.files[fPath]) return lastMultiProjectMap.files[fPath].content;
+        return null;
+      };
+
+      var multiFailure = null;
+      var appliedCount = 0;
+      var affectedFiles = [];
+
+      for (var mbi = 0; mbi < blocks.length; mbi++) {
+        var blk = blocks[mbi];
+        var targetPath = blk.file;
+
+        if (!targetPath) {
+          if (ghFilePath && getFileBase(ghFilePath) && findFingerprintedChunk(getFileBase(ghFilePath), blk.oldCode)) {
+            targetPath = ghFilePath;
+          } else {
+            var allPaths = Object.keys(window.workspaceFiles);
+            if (lastMultiProjectMap) {
+              Object.keys(lastMultiProjectMap.files).forEach(function(p) { if (allPaths.indexOf(p) === -1) allPaths.push(p); });
+            }
+            for (var pi = 0; pi < allPaths.length; pi++) {
+              var candPath = allPaths[pi];
+              var candText = getFileBase(candPath);
+              if (candText && findFingerprintedChunk(candText, blk.oldCode)) {
+                targetPath = candPath;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!targetPath) {
+          multiFailure = { blockNum: mbi + 1, reason: 'Target file not resolved for block ' + (mbi + 1) };
+          break;
+        }
+
+        var currentFileText = getFileBase(targetPath);
+        if (currentFileText == null) {
+          multiFailure = { blockNum: mbi + 1, reason: 'File missing in workspace: ' + targetPath };
+          break;
+        }
+
+        var patchRes = applyBlockToContent(blk, mbi + 1, currentFileText);
+        if (!patchRes.success) {
+          multiFailure = { blockNum: mbi + 1, reason: (patchRes.reason || 'Patch failed') + ' (in ' + targetPath + ')' };
+          break;
+        }
+
+        stagedFiles[targetPath] = patchRes.newContent;
+        if (affectedFiles.indexOf(targetPath) === -1) affectedFiles.push(targetPath);
+        appliedCount++;
+      }
+
+      if (multiFailure) {
+        cmRecordFailure('nomatch', raw, blocks, multiFailure);
+        hideProgress();
+        toast('❌ Multi-file patch aborted at Block ' + multiFailure.blockNum + ':\n' + multiFailure.reason + '\nNo files were modified.', 'err', 7000);
+        addLog('err', 'Multi-file patch aborted at block ' + multiFailure.blockNum + ': ' + multiFailure.reason);
+        return;
+      }
+
+      pushState();
+      affectedFiles.forEach(function(p) {
+        var updated = stagedFiles[p];
+        window.workspaceFiles[p] = window.workspaceFiles[p] || {};
+        window.workspaceFiles[p].content = updated;
+        window.workspaceFiles[p].modified = true;
+        if (p === ghFilePath) {
+          sourceContent = updated;
+          $codeView.value = updated;
+          render(updated, false);
+        }
+      });
+
+      updateStatusBar();
+      hideProgress();
+      lastPatchFailure = null;
+
+      var toastMsg = '✓ Multi-file patch applied! ' + appliedCount + ' patch(es) across ' + affectedFiles.length + ' file(s).\nReady to Commit All Files!';
+      toast(toastMsg, 'ok', 6000);
+      addLog('ok', 'Multi-file patch applied: ' + appliedCount + ' blocks across ' + affectedFiles.length + ' files.');
+
+      setTimeout(async function() {
+        if (await window.inAppConfirm('Multi-file patch applied to ' + affectedFiles.length + ' file(s).\n\nDo you want to commit all changed files now?', 'Commit All Files')) {
+          var caBtn = document.getElementById('commitAllFilesBtn');
+          if (caBtn) caBtn.click();
+        }
+      }, 200);
+      return;
+    }
+
+    if (!sourceContent && blocks.length === 0) {
+      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     showControls();
     $codeView.value = sourceContent;
     if (viewMode === 'preview') {
