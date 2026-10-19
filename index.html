@@ -18,6 +18,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
         apiKey: "AIzaSyCsN9OHN4SKKzMvaUnWPGUHK4VrJICL-Eo",
@@ -31,11 +32,14 @@
   
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+    const auth = getAuth(app);
+    const fbCfgPath = () => 'aicompiler/gh_config_v2';
 
   window._fbSaveConfig = async function(cfg) {
         try {
           const cleanCfg = JSON.parse(JSON.stringify(cfg));
-          await set(ref(db, 'aicompiler/gh_config_v2'), cleanCfg);
+          if (!auth.currentUser) return;
+                    await set(ref(db, fbCfgPath()), cleanCfg);
         } catch (err) {
           console.error('Firebase save error:', err);
           if (window.toast) window.toast('Save Error: ' + err.message, 'err');
@@ -43,14 +47,166 @@
       };
     window._fbLoadConfig = async function() {
       try {
-        const snap = await get(ref(db, 'aicompiler/gh_config_v2'));
+        await window._fbAuthReady;
+                if (!auth.currentUser) return null;
+                const snap = await get(ref(db, fbCfgPath()));
         return snap.exists() ? snap.val() : null;
       } catch (err) {
         console.error('Firebase load error:', err);
         return null;
       }
     };
-  window._fbReady = true;
+  // ===== Login (Email / Google / GitHub) =====
+    var authStyleEl = document.createElement('style');
+    authStyleEl.textContent =
+      '#authOverlay{position:fixed;inset:0;z-index:2147483000;background:#050507;display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;}' +
+      '#authOverlay.open{display:flex;}' +
+      '#authOverlay.checking #authCard{display:none;}' +
+      '#authOverlay.checking:after{content:"Checking session...";color:rgba(255,255,255,0.6);font-size:11px;}' +
+      '#authCard{width:100%;max-width:340px;background:#0d0e11;border-radius:20px;padding:22px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;color:#ffffff;box-shadow:0 10px 40px rgba(0,0,0,0.6);}' +
+      '#authCard h3{margin:0 0 2px 0;font-size:15px;font-weight:600;text-align:center;}' +
+      '#authCard .auth-sub{margin:0 0 6px 0;font-size:10px;text-align:center;color:rgba(255,255,255,0.6);}' +
+      '#authCard input{width:100%;box-sizing:border-box;background:#08080a;border:none;color:#ffffff;padding:10px 12px;border-radius:10px;outline:none;font-size:12px;}' +
+      '#authCard button{width:100%;height:36px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:#ffffff;background:rgba(255,255,255,0.08);}' +
+      '#authCard button:disabled{opacity:0.5;cursor:default;}' +
+      '#authCard button.auth-primary{background:rgba(57,211,83,0.22);color:#39d353;}' +
+      '#authCard button.auth-link{background:transparent;height:auto;padding:2px;font-size:10px;color:rgba(255,255,255,0.65);}' +
+      '#authCard .auth-div{display:flex;align-items:center;gap:8px;font-size:9px;color:rgba(255,255,255,0.4);}' +
+      '#authCard .auth-div:before,#authCard .auth-div:after{content:"";flex:1;height:1px;background:rgba(255,255,255,0.12);}' +
+      '#authMsg{font-size:10px;min-height:12px;text-align:center;color:#ff6b6b;word-break:break-word;}';
+    document.head.appendChild(authStyleEl);
+
+    var authOverlayEl = document.createElement('div');
+    authOverlayEl.id = 'authOverlay';
+    authOverlayEl.className = 'open checking';
+    authOverlayEl.innerHTML =
+      '<div id="authCard">' +
+        '<h3>AI Compile PRO</h3>' +
+        '<p class="auth-sub">Sign in to continue</p>' +
+        '<input type="email" id="authEmail" placeholder="Email" autocomplete="email">' +
+        '<input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">' +
+        '<button type="button" id="authEmailSignInBtn" class="auth-primary">Sign in with email</button>' +
+        '<button type="button" id="authEmailSignUpBtn">Create account</button>' +
+        '<button type="button" id="authResetBtn" class="auth-link">Forgot password?</button>' +
+        '<div class="auth-div">or</div>' +
+        '<button type="button" id="authGoogleBtn"><i class="fa-brands fa-google"></i> Continue with Google</button>' +
+        '<button type="button" id="authGithubBtn"><i class="fa-brands fa-github"></i> Continue with GitHub</button>' +
+        '<div id="authMsg"></div>' +
+      '</div>';
+    document.body.appendChild(authOverlayEl);
+    ['keydown', 'keyup', 'paste', 'copy', 'cut'].forEach(function(evt) {
+      authOverlayEl.addEventListener(evt, function(e) { e.stopPropagation(); });
+    });
+
+    function setAuthMsg(text, ok) {
+      var m = document.getElementById('authMsg');
+      if (m) { m.textContent = text || ''; m.style.color = ok ? '#39d353' : '#ff6b6b'; }
+    }
+    function setAuthBusy(busy) {
+      ['authEmailSignInBtn', 'authEmailSignUpBtn', 'authResetBtn', 'authGoogleBtn', 'authGithubBtn'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.disabled = busy;
+      });
+    }
+    function showAuthError(e) {
+      var code = (e && e.code) || '';
+      var map = {
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/missing-password': 'Enter your password.',
+        'auth/invalid-credential': 'Wrong email or password.',
+        'auth/user-not-found': 'No account found for this email.',
+        'auth/wrong-password': 'Wrong email or password.',
+        'auth/email-already-in-use': 'An account with this email already exists.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+        'auth/popup-closed-by-user': 'Sign-in was cancelled.',
+        'auth/cancelled-popup-request': 'Sign-in was cancelled.',
+        'auth/popup-blocked': 'Popup blocked. Allow popups and try again.',
+        'auth/account-exists-with-different-credential': 'This email is already registered with a different sign-in method.',
+        'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase.',
+        'auth/unauthorized-domain': 'This domain is not authorized in Firebase Auth.',
+        'auth/network-request-failed': 'Network error. Check your connection.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.'
+      };
+      setAuthMsg(map[code] || ('Sign-in failed: ' + ((e && e.message) || code || 'unknown error')));
+    }
+    async function runAuthAction(fn) {
+      setAuthBusy(true);
+      setAuthMsg('');
+      try { await fn(); } catch (e) { showAuthError(e); }
+      setAuthBusy(false);
+    }
+    function submitEmailAuth(create) {
+      var email = document.getElementById('authEmail').value.trim();
+      var pass = document.getElementById('authPassword').value;
+      if (!email || !pass) { setAuthMsg('Enter email and password.'); return; }
+      runAuthAction(function() {
+        return create ? createUserWithEmailAndPassword(auth, email, pass) : signInWithEmailAndPassword(auth, email, pass);
+      });
+    }
+
+    document.getElementById('authEmailSignInBtn').addEventListener('click', function() { submitEmailAuth(false); });
+    document.getElementById('authEmailSignUpBtn').addEventListener('click', function() { submitEmailAuth(true); });
+    ['authEmail', 'authPassword'].forEach(function(id) {
+      document.getElementById(id).addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitEmailAuth(false);
+      });
+    });
+    document.getElementById('authResetBtn').addEventListener('click', function() {
+      var email = document.getElementById('authEmail').value.trim();
+      if (!email) { setAuthMsg('Enter your email first.'); return; }
+      runAuthAction(async function() {
+        await sendPasswordResetEmail(auth, email);
+        setAuthMsg('Password reset email sent.', true);
+      });
+    });
+    document.getElementById('authGoogleBtn').addEventListener('click', function() {
+      runAuthAction(function() { return signInWithPopup(auth, new GoogleAuthProvider()); });
+    });
+    document.getElementById('authGithubBtn').addEventListener('click', function() {
+      runAuthAction(function() { return signInWithPopup(auth, new GithubAuthProvider()); });
+    });
+
+    window._fbRefreshAccountInfo = function() {
+      var el = document.getElementById('authAccountInfo');
+      if (!el) return;
+      var u = auth.currentUser;
+      if (!u) { el.textContent = 'Not signed in'; return; }
+      var pid = (u.providerData && u.providerData[0] && u.providerData[0].providerId) || 'password';
+      var labels = { 'google.com': 'Google', 'github.com': 'GitHub', 'password': 'Email' };
+      el.textContent = (u.email || u.displayName || u.uid) + ' \u00b7 ' + (labels[pid] || pid);
+    };
+
+    var authSignOutBtnEl = document.getElementById('authSignOutBtn');
+    if (authSignOutBtnEl) {
+      authSignOutBtnEl.addEventListener('click', async function() {
+        try { await signOut(auth); } catch (e) { console.error('Sign out error:', e); }
+        try {
+          localStorage.removeItem('gh_config_backup_v2');
+          localStorage.removeItem('gemini_api_key_v1');
+          localStorage.removeItem('gemini_model_v1');
+          localStorage.removeItem('gh_active_user');
+        } catch (e) {}
+        location.reload();
+      });
+    }
+
+    var authFirstState = true;
+    window._fbAuthReady = new Promise(function(resolve) {
+      onAuthStateChanged(auth, function(user) {
+        authOverlayEl.classList.remove('checking');
+        if (user) authOverlayEl.classList.remove('open'); else authOverlayEl.classList.add('open');
+        window._fbRefreshAccountInfo();
+        if (authFirstState) { authFirstState = false; resolve(user); }
+        else if (user) { location.reload(); }
+      }, function(err) {
+        console.error('Auth state error:', err);
+        authOverlayEl.classList.remove('checking');
+        authOverlayEl.classList.add('open');
+        if (authFirstState) { authFirstState = false; resolve(null); }
+      });
+    });
+
+    window._fbReady = true;
 </script>
 
 <style>
@@ -701,9 +857,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="fileBtn" class="btn" title="Load File" style="color:var(--amber);"><i class="fa-solid fa-folder"></i><span class="btn-lbl">File</span></button>
         <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Full</span></button>
   
-        <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-brands fa-github"></i><span class="btn-lbl">Config</span></button>
-                        <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
-                        <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
+        <button id="ghSettingsBtn" class="btn" title="Account & Settings"><i class="fa-solid fa-circle-user"></i><span class="btn-lbl">Config</span></button>
+                        <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="display:none !important; color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
+                        <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="display:none !important; color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
         <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i><span class="btn-lbl">Export</span></button>
                 <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i><span class="btn-lbl">Live</span></button>
                                 <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
@@ -906,22 +1062,16 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 
   <div style="display:flex; flex-direction:column; gap:14px;">
-    <!-- GitHub Authentication Section -->
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:11px; font-weight:600;"><i class="fa-brands fa-github" style="margin-right:6px;"></i>GitHub Authentication</span>
-        <button id="ghFetchReposBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Fetch user repositories"><i class="fa-solid fa-arrows-rotate" style="margin-right:4px;"></i>Fetch Repos</button>
-      </div>
-      <div class="gh-row" style="margin:0;"><label>Token</label><input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx"></div>
-      <div class="gh-row" style="margin:0;"><label>User</label><input type="text" id="ghUser" placeholder="github-username"></div>
-    </div>
-
-    <!-- Repository & Branch Target Section -->
+    <!-- Account Section -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
-          <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
-          <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-circle-user" style="margin-right:6px;"></i>Account</span>
+            <button id="authSignOutBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Sign out"><i class="fa-solid fa-right-from-bracket" style="margin-right:4px;"></i>Sign out</button>
+          </div>
+          <div id="authAccountInfo" style="font-size:10px; color:rgba(255,255,255,0.75); word-break:break-all;">Not signed in</div>
         </div>
+
+    
 
         <!-- Gemini AI Configuration -->
         <div style="display:flex; flex-direction:column; gap:8px;">
@@ -2302,8 +2452,8 @@ async function ghLoadConfigFromFirebase() {
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
-                      ghToken = localBackup.token || ghToken;
-                      ghUser = localBackup.user || ghUser;
+                      
+                      
                       ghRepo = localBackup.repo || ghRepo;
                       ghBranch = localBackup.branch || ghBranch;
                       ghFilePath = localBackup.filePath || ghFilePath;
@@ -2317,8 +2467,8 @@ async function ghLoadConfigFromFirebase() {
                     const cfg = await window._fbLoadConfig();
                     console.log('[bookmarks] Firebase config loaded:', cfg);
                     if (cfg) {
-                                            ghToken = cfg.token || ghToken;
-                                                                                        ghUser = cfg.user || ghUser;
+                                            
+                                                                                        
                                                                                         ghBranch = cfg.branch || ghBranch;
                                                                                         ghFilePath = cfg.filePath || ghFilePath;
                                                                                         ghRepos = cfg.repos || ghRepos;
@@ -2374,8 +2524,8 @@ async function ghLoadConfigFromFirebase() {
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
-          token: ghToken || '', 
-                  user: ghUser || '', 
+           
+                   
                   repo: ghRepo || '', 
                   branch: ghBranch || 'main', 
                   filePath: ghFilePath || 'index.html', 
@@ -8860,11 +9010,8 @@ document.getElementById('pasteBtn').addEventListener('click', async function() {
 });
 
 document.getElementById('ghSettingsBtn').addEventListener('click', function() {
-  document.getElementById('ghToken').value = ghToken;
-  document.getElementById('ghUser').value = ghUser;
-  document.getElementById('ghBranch').value = ghBranch;
-  document.getElementById('ghFilePath').value = ghFilePath;
   document.getElementById('geminiApiKey').value = geminiApiKey;
+    if (window._fbRefreshAccountInfo) window._fbRefreshAccountInfo();
 
   var sel = document.getElementById('geminiModelSelect');
   var customRow = document.getElementById('geminiCustomModelRow');
@@ -8907,8 +9054,6 @@ document.getElementById('geminiModelSelect').addEventListener('change', function
 });
 
 document.getElementById('ghSaveBtn').addEventListener('click', function() {
-  let newUser = document.getElementById('ghUser').value.trim();
-  let newToken = document.getElementById('ghToken').value.trim();
   geminiApiKey = document.getElementById('geminiApiKey').value.trim();
 
   var sel = document.getElementById('geminiModelSelect');
@@ -8921,32 +9066,14 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
 
   localStorage.setItem('gemini_api_key_v1', geminiApiKey);
   localStorage.setItem('gemini_model_v1', geminiModel);
-  
-  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
-    ghRepos = [];
-    ghBookmarkedRepos = [];
-    ghRepo = '';
-    currentDirectory = '';
-    const ftc = document.getElementById('fileTreeContainer');
-    const rtc = document.getElementById('repoTabsContainer');
-    if(ftc) ftc.innerHTML = '';
-    if(rtc) rtc.innerHTML = '';
-  }
-  
-  ghToken = newToken;
-  ghUser = newUser;
-  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-    ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
 
     ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
-  toast('💾 GitHub Settings Saved!');
+  toast('💾 Settings Saved!');
 
-  if (ghToken && ghUser && ghRepos.length === 0) {
-    ghFetchAllRepos();
-  }
+  
 });
 
 function readFileAsBase64(file) {
@@ -9077,27 +9204,7 @@ async function uploadSingleFileToRepo(repo, path, base64Content, branch, message
   return await putRes.json();
 }
 
-document.getElementById('ghFetchReposBtn').addEventListener('click', function() {
-  let newUser = document.getElementById('ghUser').value.trim();
-  let newToken = document.getElementById('ghToken').value.trim();
-  
-  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
-    ghRepos = [];
-    ghBookmarkedRepos = [];
-    ghRepo = '';
-    currentDirectory = '';
-    const ftc = document.getElementById('fileTreeContainer');
-    const rtc = document.getElementById('repoTabsContainer');
-    if(ftc) ftc.innerHTML = '';
-    if(rtc) rtc.innerHTML = '';
-  }
-  
-  ghToken = newToken;
-  ghUser = newUser;
-  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-  ghSaveConfig();
-  ghFetchAllRepos();
-});
+
 
 window.syncCurrentFile = async function() {
   window.ensureWsRepo();
@@ -9241,39 +9348,9 @@ window.syncCurrentFile = async function() {
   hideProgress();
 };
 
-document.getElementById('ghSyncBtn').addEventListener('click', async function() {
-  if (!ghToken) { toast('❌ Configure GitHub first.', 'warn'); return; }
-  toast('🔄 Syncing workspace...', 'info');
-  showProgress(20);
-  try {
-    window._treeCache = {};
-    await ghFetchAllRepos();
-    if (ghRepo) {
-      await fetchFileTree(false, true);
-      if (ghFilePath) await syncCurrentFile();
-    }
-  } catch(e) {
-    toast('❌ Sync error: ' + e.message, 'err');
-  }
-  hideProgress();
-});
 
-document.getElementById('ghPushBtn').addEventListener('click', function() {
-  syncEditorToSource();
-  if (!ghToken || !ghRepo) {
-    toast('❌ Configure GitHub Token and select a Repo first.', 'warn');
-    document.getElementById('ghSettingsBtn').click();
-    return;
-  }
-  const currentText = (viewMode === 'code') ? $codeView.value : sourceContent;
-  if (!currentText && (!window.workspaceFiles || Object.keys(window.workspaceFiles).length === 0)) {
-    toast('❌ Nothing to push.', 'warn');
-    return;
-  }
-  const ts = new Date().toISOString().replace('T',' ').slice(0,19);
-  document.getElementById('commitMsgInput').value = `Update ${ghFilePath || 'workspace'} via AI Compile – ${ts}`;
-  document.getElementById('cmConfirmBtn').click();
-});
+
+
 
 document.getElementById('cmCancelBtn').addEventListener('click', function() {
   document.getElementById('commitModal').classList.remove('open');
