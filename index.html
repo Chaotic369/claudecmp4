@@ -998,7 +998,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                               <button id="bmYamlDropdownBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; gap:4px;" title="Select YAML Config Type"><i class="fa-solid fa-layer-group"></i><span>YAML Configs</span><i class="fa-solid fa-chevron-down" style="font-size:8px; opacity:0.7;"></i></button>
                                                                               <div class="bm-ui-dropdown-menu" id="bmYamlDropdownMenu">
                                                                                 <button id="bmUseWrapperYamlBtn" type="button" class="bm-ui-dropdown-item" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="color:var(--blue);"></i>HTML Wrapper (APK)</button>
-                                                                                <button id="bmCopyYamlPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--amber);"></i>Native App Prompt</button>
+                                                                                <button id="bmCopyYamlPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy native app (APK) prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--amber);"></i>Native App (APK) Prompt</button>
                                                                                 <button id="bmWinPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy Windows EXE prompt for AI"><i class="fa-brands fa-windows" style="color:var(--teal);"></i>Windows EXE Prompt</button>
                                                                                 <button type="button" class="bm-ui-dropdown-item" data-wf="playwright" title="Load Playwright Visual Tests YAML"><i class="fa-solid fa-masks-theater" style="color:var(--green);"></i>Playwright Visual Tests</button>
                                                                                 <button type="button" class="bm-ui-dropdown-item" data-wf="lighthouse" title="Load Lighthouse CI Audit YAML"><i class="fa-solid fa-gauge-high" style="color:var(--amber);"></i>Lighthouse CI Audit</button>
@@ -9783,7 +9783,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                       var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
                                                                                       var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
 
-                                                                                      var prompt = 'Write a complete GitHub Actions workflow YAML file to build my Native Android App.\n\n' +
+                                                                                      var prompt = 'Write a complete GitHub Actions workflow YAML file to build my Native Android App (APK).\n\n' +
                                                                                         'Context & Constraints:\n' +
                                                                                         '- Repo: ' + repoContext + '\n' +
                                                                                         '- The YAML file will be saved at: .github/workflows/' + filename + '\n' +
@@ -9799,7 +9799,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                         'Return ONLY the raw YAML content. No markdown code fences, no explanations.';
 
                                                         navigator.clipboard.writeText(prompt).then(function() {
-                                                          toast('🚀 Native App YAML Prompt copied!');
+                                                          toast('🚀 Native App (APK) YAML Prompt copied!');
                                                         }).catch(function(err) {
                                                           toast('❌ Failed to copy prompt: ' + err.message, 'err');
                                                         });
