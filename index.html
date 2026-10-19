@@ -51,16 +51,6 @@
         await window._fbAuthReady;
                 if (!auth.currentUser) return null;
                 const snap = await get(ref(db, fbCfgPath()));
-                                if (snap.exists()) return snap.val();
-                                try {
-                                  const oldSnap = await get(ref(db, fbOldCfgPath()));
-                                  if (oldSnap.exists()) {
-                                    const oldCfg = oldSnap.val();
-                                    oldCfg.geminiApiKey = '';
-                                    await set(ref(db, fbCfgPath()), oldCfg);
-                                    return oldCfg;
-                                  }
-                                } catch (e) { console.warn('Old config migration skipped:', e); }
         return snap.exists() ? snap.val() : null;
       } catch (err) {
         console.error('Firebase load error:', err);
