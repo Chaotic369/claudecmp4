@@ -35,15 +35,6 @@
     const auth = getAuth(app);
     const fbCfgPath = () => 'users/' + (auth.currentUser ? auth.currentUser.uid : 'anon') + '/gh_config_v2';
         const fbOldCfgPath = () => 'aicompiler/gh_config_v2';
-            window._fbUid = function() { return auth.currentUser ? auth.currentUser.uid : null; };
-            window._fbEnsureUser = function(uid) {
-              try {
-                if (!uid || localStorage.getItem('gh_cfg_uid') === uid) return false;
-                ['gh_config_backup_v2', 'gemini_api_key_v1', 'gemini_model_v1', 'gh_active_user', 'gh_token_v1'].forEach(function(k) { localStorage.removeItem(k); });
-                localStorage.setItem('gh_cfg_uid', uid);
-                return true;
-              } catch (e) { return false; }
-            };
 
   window._fbSaveConfig = async function(cfg) {
         try {
@@ -233,16 +224,7 @@
       runAuthAction(function() { return signInWithPopup(auth, new GoogleAuthProvider()); });
     });
     document.getElementById('authGithubBtn').addEventListener('click', function() {
-      runAuthAction(async function() {
-              var gp = new GithubAuthProvider();
-              gp.addScope('repo');
-              var res = await signInWithPopup(auth, gp);
-              var cred = GithubAuthProvider.credentialFromResult(res);
-              if (cred && cred.accessToken) {
-                window._fbEnsureUser(res.user.uid);
-                try { localStorage.setItem('gh_token_v1', cred.accessToken); } catch (e) {}
-              }
-            });
+      runAuthAction(function() { return signInWithPopup(auth, new GithubAuthProvider()); });
     });
 
     window._fbRefreshAccountInfo = function() {
@@ -289,8 +271,6 @@
           localStorage.removeItem('gemini_api_key_v1');
           localStorage.removeItem('gemini_model_v1');
           localStorage.removeItem('gh_active_user');
-                    localStorage.removeItem('gh_token_v1');
-                    localStorage.removeItem('gh_cfg_uid');
         } catch (e) {}
         location.reload();
       });
@@ -303,7 +283,7 @@
         if (user) authOverlayEl.classList.remove('open'); else authOverlayEl.classList.add('open');
         window._fbRefreshAccountInfo();
         if (authFirstState) { authFirstState = false; resolve(user); }
-        else if (user) { setTimeout(function() { location.reload(); }, 800); }
+        else if (user) { location.reload(); }
       }, function(err) {
         console.error('Auth state error:', err);
         authOverlayEl.classList.remove('checking');
@@ -1179,13 +1159,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
     
 
-        <!-- GitHub Token -->
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                  <span style="font-size:11px; font-weight:600;"><i class="fa-brands fa-github" style="margin-right:6px;"></i>GitHub</span>
-                  <div class="gh-row" style="margin:0;"><label>Token</label><input type="password" id="ghTokenInput" placeholder="ghp_... (repo access)"></div>
-                </div>
-
-                <!-- Gemini AI Configuration -->
+        <!-- Gemini AI Configuration -->
         <div style="display:flex; flex-direction:column; gap:8px;">
           <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px; color:var(--teal);"></i>Gemini AI Engine</span>
           <div class="gh-row" style="margin:0;"><label>API Key</label><input type="password" id="geminiApiKey" placeholder="AIzaSy..."></div>
@@ -2001,7 +1975,7 @@ function setMenuScale(scale) {
 }
 
 // GitHub & AI Vars
-var ghToken = localStorage.getItem('gh_token_v1') || '';
+var ghToken = '';
 var ghUser = '';
 var ghRepo = '';
 var ghBranch = 'main';
@@ -2561,15 +2535,6 @@ function applyWallpaper(url) {
 
 async function ghLoadConfigFromFirebase() {
   try {
-    try { if (window._fbAuthReady) await window._fbAuthReady; } catch(e) {}
-    if (window._fbEnsureUser && window._fbEnsureUser(window._fbUid ? window._fbUid() : null)) {
-      geminiApiKey = '';
-      geminiModel = 'gemini-3.8-flash';
-      ghToken = '';
-      ghRepo = '';
-      ghRepos = [];
-      ghBookmarkedRepos = [];
-    }
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
@@ -9132,8 +9097,6 @@ document.getElementById('pasteBtn').addEventListener('click', async function() {
 
 document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('geminiApiKey').value = geminiApiKey;
-    var tkOpen = document.getElementById('ghTokenInput');
-    if (tkOpen) tkOpen.value = ghToken;
     if (window._fbRefreshAccountInfo) window._fbRefreshAccountInfo();
 
   var sel = document.getElementById('geminiModelSelect');
@@ -9189,21 +9152,12 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
 
   localStorage.setItem('gemini_api_key_v1', geminiApiKey);
   localStorage.setItem('gemini_model_v1', geminiModel);
-    var tkEl = document.getElementById('ghTokenInput');
-    var newTok = tkEl ? tkEl.value.trim() : ghToken;
-    var tokChanged = newTok !== ghToken;
-    if (tokChanged) {
-      if (ghToken) { ghRepo = ''; ghRepos = []; ghBookmarkedRepos = []; }
-      ghToken = newTok;
-      try { localStorage.setItem('gh_token_v1', ghToken); } catch (e) {}
-    }
 
     ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
   toast('💾 Settings Saved!');
-    if (tokChanged && ghToken) { ghFetchAllRepos().catch(function(e) { console.error(e); }); }
 
   
 });
